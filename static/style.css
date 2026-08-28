@@ -837,8 +837,27 @@ h1 {
     }
 }
 
+/* The links live in the .user-row span nested inside .nav-bar, not in
+   .nav-bar itself - scoped to that child only so this doesn't touch every
+   other .user-row on the page. Once the links' own min-width (set below)
+   no longer fits the bar's available width, this lets "Add Property"
+   drop to a second line instead of getting clipped by .nav-link's
+   overflow: hidden. */
+.nav-bar > .user-row {
+    flex-wrap: wrap;
+    row-gap: 6px;
+}
+
 .nav-link {
-    flex: 1;
+    /* flex-basis: auto (not 0) so each link's share of the bar is based on
+       its own label width - at the bar's natural (unconstrained) size this
+       is what stops "Add Property" from being squeezed into the same
+       column width as "Agents" and having its text sliced off by the
+       overflow: hidden below. min-width guarantees the same floor once the
+       bar runs out of room and .user-row (its flex parent) starts wrapping
+       links onto a second line instead of continuing to shrink them. */
+    flex: 1 1 auto;
+    min-width: max-content;
     text-align: center;
     padding: 10px 16px;
     font-size: 0.875rem;
