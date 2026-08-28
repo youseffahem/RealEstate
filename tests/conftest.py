@@ -198,6 +198,38 @@ def count_properties():
     return total
 
 
+def insert_property_image(property_id, image_url, sort_order=0):
+    """Insert one property_images row directly and return its id - used to
+    set up gallery state a test doesn't create through the UI itself."""
+    connection = app_module.get_connection()
+    cursor = connection.cursor()
+    cursor.execute(
+        "INSERT INTO property_images (property_id, image_url, sort_order) VALUES (%s, %s, %s)",
+        (property_id, image_url, sort_order),
+    )
+    connection.commit()
+    new_id = cursor.lastrowid
+    cursor.close()
+    connection.close()
+    return new_id
+
+
+def fetch_property_images(property_id):
+    """Every image row for a property (including empty placeholder rows),
+    ordered the same way property_queries.get_property_images() orders
+    real ones - used to assert what actually landed in the table."""
+    connection = app_module.get_connection()
+    cursor = connection.cursor(dictionary=True)
+    cursor.execute(
+        "SELECT id, image_url, sort_order FROM property_images WHERE property_id = %s ORDER BY sort_order, id",
+        (property_id,),
+    )
+    rows = cursor.fetchall()
+    cursor.close()
+    connection.close()
+    return rows
+
+
 @pytest.fixture()
 def track_properties():
     """Any property id a test creates (directly or through the API) is

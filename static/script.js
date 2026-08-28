@@ -74,6 +74,8 @@
         initSearch();
         initDeleteDialog();
         initLivePreview();
+        initImageUrlManager();
+        initPropertyGallery();
 
         if (pointerFx) {
             startFrameLoop();
@@ -1604,6 +1606,147 @@
         });
 
         render();
+    }
+
+
+    /* ===== Property image URL manager (Create / Edit property) =====
+       Plain add/remove rows for the gallery's URL list - no upload, no
+       drag-and-drop, no extra listener class. Every row is just another
+       <input name="image_urls"> inside the existing form, so the browser
+       submits the whole list the normal way; this only adds and removes
+       rows in the DOM. */
+    function initImageUrlManager() {
+        var manager = document.querySelector('[data-image-manager]');
+        if (!manager) {
+            return;
+        }
+
+        var rowsContainer = manager.querySelector('[data-image-rows]');
+        var addButton = manager.querySelector('[data-image-add]');
+        var template = manager.querySelector('[data-image-row-template]');
+        var maxImages = parseInt(manager.getAttribute('data-max-images'), 10) || 12;
+
+        if (!rowsContainer || !template) {
+            return;
+        }
+
+        function rows() {
+            return rowsContainer.querySelectorAll('[data-image-row]');
+        }
+
+        function refreshAddButton() {
+            if (addButton) {
+                addButton.disabled = rows().length >= maxImages;
+            }
+        }
+
+        if (addButton) {
+            addButton.addEventListener('click', function () {
+                if (rows().length >= maxImages) {
+                    return;
+                }
+                rowsContainer.appendChild(template.content.cloneNode(true));
+                refreshAddButton();
+                var current = rows();
+                var input = current[current.length - 1].querySelector('input');
+                if (input) {
+                    input.focus();
+                }
+            });
+        }
+
+        rowsContainer.addEventListener('click', function (event) {
+            var removeButton = event.target.closest ? event.target.closest('[data-image-remove]') : null;
+            if (!removeButton) {
+                return;
+            }
+            var row = removeButton.closest ? removeButton.closest('[data-image-row]') : null;
+            if (!row) {
+                return;
+            }
+
+            // Keep at least one row so the field never disappears outright -
+            // clearing the single remaining input is enough to submit no URL.
+            if (rows().length <= 1) {
+                var input = row.querySelector('input');
+                if (input) {
+                    input.value = '';
+                    input.focus();
+                }
+                return;
+            }
+
+            row.remove();
+            refreshAddButton();
+        });
+
+        refreshAddButton();
+    }
+
+
+    /* ===== Property gallery (Property Details) =====
+       Click a thumbnail (or Previous/Next) to swap the main image. Plain
+       click handlers - no mousemove listener, no requestAnimationFrame
+       loop; every control is a real <button>, so it is already reachable
+       and operable from the keyboard without any extra code. Arrow keys
+       are added on top as a convenience once a gallery control has focus. */
+    function initPropertyGallery() {
+        var gallery = document.querySelector('[data-gallery]');
+        if (!gallery) {
+            return;
+        }
+
+        var mainImg = gallery.querySelector('[data-gallery-main-img]');
+        var thumbs = gallery.querySelectorAll('[data-gallery-thumb]');
+        var prevButton = gallery.querySelector('[data-gallery-prev]');
+        var nextButton = gallery.querySelector('[data-gallery-next]');
+
+        if (!mainImg || !thumbs.length) {
+            return;
+        }
+
+        var index = 0;
+
+        function show(nextIndex) {
+            index = (nextIndex + thumbs.length) % thumbs.length;
+            var thumb = thumbs[index];
+
+            mainImg.src = thumb.getAttribute('data-src');
+            mainImg.alt = thumb.getAttribute('data-alt') || mainImg.alt;
+
+            Array.prototype.forEach.call(thumbs, function (candidate, i) {
+                var active = i === index;
+                candidate.classList.toggle('active', active);
+                candidate.setAttribute('aria-current', active ? 'true' : 'false');
+            });
+        }
+
+        Array.prototype.forEach.call(thumbs, function (thumb, i) {
+            thumb.addEventListener('click', function () {
+                show(i);
+            });
+        });
+
+        if (prevButton) {
+            prevButton.addEventListener('click', function () {
+                show(index - 1);
+            });
+        }
+        if (nextButton) {
+            nextButton.addEventListener('click', function () {
+                show(index + 1);
+            });
+        }
+
+        gallery.addEventListener('keydown', function (event) {
+            if (event.key === 'ArrowLeft') {
+                event.preventDefault();
+                show(index - 1);
+            } else if (event.key === 'ArrowRight') {
+                event.preventDefault();
+                show(index + 1);
+            }
+        });
     }
 
 }());

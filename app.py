@@ -670,11 +670,21 @@ def _property_reference_or_empty():
         return {"property_types": [], "locations": [], "agents": []}
 
 
-def _render_property_form(template, form_action, submit_label, property_data):
+def get_image_urls_from_form():
+    """Every image URL box submitted from the create/edit property form -
+    one <input name="image_urls"> per gallery row (see
+    templates/properties/_property_form.html)."""
+    return request.form.getlist("image_urls")
+
+
+def _render_property_form(template, form_action, submit_label, property_data, image_urls=None):
     """Shared GET-render for the create and edit pages: the reference
     data for the selects, plus whatever the caller already has for the
     fields themselves (empty defaults, a prefilled property, or a
-    rejected submission the user should see again with what they typed)."""
+    rejected submission the user should see again with what they typed).
+    `image_urls` is the gallery URLs to prefill - the property's existing
+    images on a normal GET, or exactly what the user just typed when a
+    submission is being redisplayed after a validation error."""
     reference = _property_reference_or_empty()
     return render_template(
         template,
@@ -686,6 +696,8 @@ def _render_property_form(template, form_action, submit_label, property_data):
         agents=reference["agents"],
         listing_types=property_validation.LISTING_TYPES,
         statuses=property_validation.STATUSES,
+        property_images=image_urls or [],
+        max_images=property_validation.MAX_IMAGES_PER_PROPERTY,
     )
 
 
@@ -712,6 +724,11 @@ def properties_manage():
     try:
         connection = get_connection()
         properties = property_queries.get_all_properties(connection, _property_filters_from_query_string())
+        primary_images = property_queries.get_primary_images(
+            connection, [row["id"] for row in properties]
+        )
+        for row in properties:
+            row["primary_image"] = primary_images.get(row["id"])
         reference = property_queries.get_reference_data(connection)
         connection.close()
     except mysql.connector.Error as error:
@@ -735,6 +752,7 @@ def property_view(id):
     try:
         connection = get_connection()
         row = property_queries.get_property_by_id(connection, id)
+        images = property_queries.get_property_images(connection, id) if row else []
         connection.close()
     except mysql.connector.Error as error:
         app.logger.error("Database error while loading property %s: %s", id, error)
@@ -745,7 +763,7 @@ def property_view(id):
         flash("That property does not exist!", "error")
         return redirect(url_for("properties_manage"))
 
-    return render_template("properties/detail.html", property=row)
+    return render_template("properties/detail.html", property=row, images=images)
 
 
 # ===== Create Property =====
@@ -753,6 +771,7 @@ def property_view(id):
 def properties_new():
     if request.method == "POST":
         data = get_property_form_data()
+        image_urls = get_image_urls_from_form()
 
         try:
             connection = get_connection()
@@ -760,23 +779,26 @@ def properties_new():
             app.logger.error("Database error: %s", error)
             flash("The database is unavailable. Please try again later.", "error")
             return _render_property_form("properties/add.html", url_for("properties_new"),
-                                          "Create property", data)
+                                          "Create property", data, image_urls=image_urls)
 
         try:
             valid_ids = property_queries.get_valid_ids(connection)
             errors, cleaned = property_validation.validate_property_payload(data, valid_ids)
+            image_errors, cleaned_image_urls = property_validation.validate_image_urls(image_urls)
+            errors.extend(image_errors)
             if errors:
                 for error in errors:
                     flash(error, "error")
                 return _render_property_form("properties/add.html", url_for("properties_new"),
-                                              "Create property", data)
+                                              "Create property", data, image_urls=image_urls)
 
             new_id = property_queries.create_property(connection, cleaned)
+            property_queries.set_property_images(connection, new_id, cleaned_image_urls)
         except mysql.connector.Error as error:
             app.logger.error("Database error while creating a property: %s", error)
             flash("Could not save the property. Please try again later.", "error")
             return _render_property_form("properties/add.html", url_for("properties_new"),
-                                          "Create property", data)
+                                          "Create property", data, image_urls=image_urls)
         finally:
             connection.close()
 
@@ -805,32 +827,37 @@ def properties_edit_page(id):
 
     if request.method == "POST":
         data = get_property_form_data()
+        image_urls = get_image_urls_from_form()
         try:
             valid_ids = property_queries.get_valid_ids(connection)
             errors, cleaned = property_validation.validate_property_payload(data, valid_ids)
+            image_errors, cleaned_image_urls = property_validation.validate_image_urls(image_urls)
+            errors.extend(image_errors)
             if errors:
                 for error in errors:
                     flash(error, "error")
                 return _render_property_form("properties/edit.html",
                                               url_for("properties_edit_page", id=id),
-                                              "Save changes", data)
+                                              "Save changes", data, image_urls=image_urls)
 
             property_queries.update_property(connection, id, cleaned)
+            property_queries.set_property_images(connection, id, cleaned_image_urls)
         except mysql.connector.Error as error:
             app.logger.error("Database error while updating property %s: %s", id, error)
             flash("Could not update the property. Please try again later.", "error")
             return _render_property_form("properties/edit.html",
                                           url_for("properties_edit_page", id=id),
-                                          "Save changes", data)
+                                          "Save changes", data, image_urls=image_urls)
         finally:
             connection.close()
 
         flash('"' + cleaned["title"] + '" has been updated!', "success")
         return redirect(url_for("property_view", id=id))
 
+    existing_images = [row["image_url"] for row in property_queries.get_property_images(connection, id)]
     connection.close()
     return _render_property_form("properties/edit.html", url_for("properties_edit_page", id=id),
-                                  "Save changes", existing)
+                                  "Save changes", existing, image_urls=existing_images)
 
 
 # ===== Delete Property (POST only - never on GET) =====

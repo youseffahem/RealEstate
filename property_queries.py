@@ -185,6 +185,76 @@ def get_valid_ids(connection):
     }
 
 
+def get_property_images(connection, property_id):
+    """Every image for one property, in gallery order (sort_order, then id
+    as a tiebreaker). Rows with no URL are skipped - the original seed
+    data inserts two empty placeholder rows per demo property (see
+    real_estate_db.py), and those are not real images to display."""
+    cursor = connection.cursor(dictionary=True)
+    cursor.execute(
+        """
+        SELECT id, property_id, image_url, sort_order, created_at
+        FROM property_images
+        WHERE property_id = %s AND image_url IS NOT NULL AND image_url != ''
+        ORDER BY sort_order, id
+        """,
+        (property_id,),
+    )
+    rows = cursor.fetchall()
+    cursor.close()
+    return rows
+
+
+def get_primary_images(connection, property_ids):
+    """{property_id: image_url} for the first (lowest sort_order) real
+    image of each id in `property_ids` - one extra query for a whole grid
+    of property cards, instead of one query per card."""
+    property_ids = [pid for pid in property_ids if pid is not None]
+    if not property_ids:
+        return {}
+
+    placeholders = ", ".join(["%s"] * len(property_ids))
+    cursor = connection.cursor(dictionary=True)
+    cursor.execute(
+        """
+        SELECT property_id, image_url
+        FROM property_images
+        WHERE property_id IN (""" + placeholders + """)
+          AND image_url IS NOT NULL AND image_url != ''
+        ORDER BY property_id, sort_order, id
+        """,
+        tuple(property_ids),
+    )
+    rows = cursor.fetchall()
+    cursor.close()
+
+    primary = {}
+    for row in rows:
+        # Rows arrive ordered by sort_order/id within each property, so the
+        # first one seen for a given property_id is its primary image.
+        primary.setdefault(row["property_id"], row["image_url"])
+    return primary
+
+
+def set_property_images(connection, property_id, image_urls):
+    """Replace every image of a property with `image_urls`, in the order
+    given - the one write path for the create/edit image manager. It
+    covers adding, removing and reordering images in a single delete +
+    insert pair, inside one transaction, so a save can never leave a
+    stale row behind from a previous edit. `image_urls` is expected to
+    already be validated (property_validation.validate_image_urls)."""
+    cursor = connection.cursor()
+    cursor.execute("DELETE FROM property_images WHERE property_id = %s", (property_id,))
+    if image_urls:
+        rows = [(property_id, url, index) for index, url in enumerate(image_urls)]
+        cursor.executemany(
+            "INSERT INTO property_images (property_id, image_url, sort_order) VALUES (%s, %s, %s)",
+            rows,
+        )
+    connection.commit()
+    cursor.close()
+
+
 def get_property_stats(connection):
     """Dashboard numbers, computed straight from MySQL - nothing hard coded.
 

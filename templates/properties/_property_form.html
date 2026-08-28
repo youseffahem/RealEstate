@@ -126,6 +126,44 @@
                 <span class="field-hint" id="description-hint">Shown on the property's details page.</span>
             </div>
 
+            <!-- ===== Gallery: image URLs only - no file upload, no generated
+                   images. Each row is a plain http(s) link, validated by
+                   property_validation.validate_image_urls() on submit. ===== -->
+            <div class="form-group image-manager" data-image-manager data-max-images="{{ max_images }}">
+                <label id="image-urls-label">Property images</label>
+                <div class="image-url-rows" data-image-rows aria-labelledby="image-urls-label">
+                    {% for image_url in property_images %}
+                    <div class="image-url-row" data-image-row>
+                        <input type="url" name="image_urls" value="{{ image_url }}"
+                               placeholder="https://example.com/photo.jpg" maxlength="500"
+                               inputmode="url" autocomplete="off" aria-label="Image URL">
+                        <button type="button" class="btn-icon btn-delete" data-image-remove
+                                aria-label="Remove this image URL">{{ ico.icon('trash', 14) }}</button>
+                    </div>
+                    {% else %}
+                    <div class="image-url-row" data-image-row>
+                        <input type="url" name="image_urls" value=""
+                               placeholder="https://example.com/photo.jpg" maxlength="500"
+                               inputmode="url" autocomplete="off" aria-label="Image URL">
+                        <button type="button" class="btn-icon btn-delete" data-image-remove
+                                aria-label="Remove this image URL">{{ ico.icon('trash', 14) }}</button>
+                    </div>
+                    {% endfor %}
+                </div>
+                <template data-image-row-template>
+                    <div class="image-url-row" data-image-row>
+                        <input type="url" name="image_urls" value=""
+                               placeholder="https://example.com/photo.jpg" maxlength="500"
+                               inputmode="url" autocomplete="off" aria-label="Image URL">
+                        <button type="button" class="btn-icon btn-delete" data-image-remove
+                                aria-label="Remove this image URL">{{ ico.icon('trash', 14) }}</button>
+                    </div>
+                </template>
+                <button type="button" class="btn-link-secondary btn-cancel" data-image-add>
+                    {{ ico.icon('plus', 14) }} Add image URL</button>
+                <span class="field-hint">Paste a direct http:// or https:// image link. Up to {{ max_images }} images.</span>
+            </div>
+
         </form>
 
         <span class="input-group form-actions">

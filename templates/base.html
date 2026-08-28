@@ -23,7 +23,12 @@
                No container, no box - the galaxy aura on .brand-aura is the
                only thing around it, and it travels with the lockup. ===== -->
         <div class="brand-lockup">
-            <span class="user-row brand-aura">
+            {# The wordmark itself is the link - same element the gravity
+               field and the aura already target (.brand-aura), just an
+               <a> instead of a <span> now. Nothing about the cosmic
+               effect changes: .brand-aura is a class selector, so every
+               rule in style.css that reads it still matches unchanged. #}
+            <a href="{{ url_for('dashboard') }}" class="user-row brand-aura" aria-label="REAL ESTATE — go to Dashboard">
                 {# Galaxy orbit field: purely decorative, click-through, and
                    invisible until the cursor enters the wordmark. Static
                    markup - nothing here is ever created at runtime. #}
@@ -36,7 +41,7 @@
                 </span>
                 {{ ico.icon('sparkle', 18) }}
                 <span class="user-name brand">REAL ESTATE</span>
-            </span>
+            </a>
         </div>
 
         <!-- ===== Floating glass header: sections, centred under the brand ===== -->

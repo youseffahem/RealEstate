@@ -33,8 +33,8 @@
     <dl class="detail-grid">
 
         <div class="detail-field">
-            <dt>Property type</dt>
-            <dd>{{ property.property_type }}</dd>
+            <dt>Price</dt>
+            <dd>${{ property.price|money }}</dd>
         </div>
 
         <div class="detail-field">
@@ -48,11 +48,6 @@
         </div>
 
         <div class="detail-field">
-            <dt>Price</dt>
-            <dd>${{ property.price|money }}</dd>
-        </div>
-
-        <div class="detail-field">
             <dt>Location</dt>
             <dd>{{ property.location_name }}</dd>
         </div>
@@ -60,6 +55,11 @@
         <div class="detail-field">
             <dt>City</dt>
             <dd>{{ property.location_city }}</dd>
+        </div>
+
+        <div class="detail-field">
+            <dt>Property type</dt>
+            <dd>{{ property.property_type }}</dd>
         </div>
 
         <div class="detail-field">
@@ -100,23 +100,61 @@
             </dd>
         </div>
 
+        <div class="detail-field detail-description">
+            <dt>Description</dt>
+            <dd>{{ property.description or 'No description provided.' }}</dd>
+        </div>
+
         <div class="detail-field">
             <dt>Created</dt>
             <dd>{{ property.created_at.strftime('%b %d, %Y · %H:%M') if property.created_at else '—' }}</dd>
         </div>
 
         <div class="detail-field">
-            <dt>Last updated</dt>
+            <dt>Updated</dt>
             <dd>{{ property.updated_at.strftime('%b %d, %Y · %H:%M') if property.updated_at else '—' }}</dd>
-        </div>
-
-        <div class="detail-field detail-description">
-            <dt>Description</dt>
-            <dd>{{ property.description or 'No description provided.' }}</dd>
         </div>
 
     </dl>
 
+</section>
+
+<!-- ===== Gallery - property_images, via property_queries.get_property_images() ===== -->
+<section class="card" aria-label="Property gallery">
+    <h2>{{ ico.icon('image') }} Gallery</h2>
+
+    {% if images %}
+    <div class="gallery" data-gallery>
+        <div class="gallery-main">
+            {% if images|length > 1 %}
+            <button type="button" class="btn-icon gallery-nav gallery-prev" data-gallery-prev
+                    aria-label="Previous photo">{{ ico.icon('arrow-left', 16) }}</button>
+            {% endif %}
+            <img data-gallery-main-img src="{{ images[0].image_url }}"
+                 alt="{{ property.title }} — photo 1 of {{ images|length }}" loading="lazy">
+            {% if images|length > 1 %}
+            <button type="button" class="btn-icon gallery-nav gallery-next" data-gallery-next
+                    aria-label="Next photo">{{ ico.icon('arrow-right', 16) }}</button>
+            {% endif %}
+        </div>
+
+        {% if images|length > 1 %}
+        <div class="gallery-thumbs" role="list" aria-label="Photo thumbnails">
+            {% for image in images %}
+            <button type="button" class="gallery-thumb {{ 'active' if loop.first }}" data-gallery-thumb
+                    data-src="{{ image.image_url }}"
+                    data-alt="{{ property.title }} — photo {{ loop.index }} of {{ images|length }}"
+                    aria-current="{{ 'true' if loop.first else 'false' }}"
+                    aria-label="Show photo {{ loop.index }} of {{ images|length }}">
+                <img src="{{ image.image_url }}" alt="" loading="lazy">
+            </button>
+            {% endfor %}
+        </div>
+        {% endif %}
+    </div>
+    {% else %}
+    <p class="gallery-empty">{{ ico.icon('image', 15) }} No property images available.</p>
+    {% endif %}
 </section>
 
 <span class="input-group form-actions row-wrap">

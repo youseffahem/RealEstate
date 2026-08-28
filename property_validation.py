@@ -9,9 +9,20 @@ type, location or agent that does not exist.
 """
 
 import math
+from urllib.parse import urlsplit
 
 TITLE_MAX_LENGTH = 180          # matches properties.title VARCHAR(180)
 DESCRIPTION_MAX_LENGTH = 4000   # reasonable cap; column itself is TEXT
+
+# matches property_images.image_url VARCHAR(500)
+IMAGE_URL_MAX_LENGTH = 500
+# Keeps the gallery lightweight (Phase 4 requirement) - no property ever
+# preloads or has to page through hundreds of thumbnails.
+MAX_IMAGES_PER_PROPERTY = 12
+# Only a plain http(s) link is ever stored or rendered as an <img src>.
+# This is what actually blocks javascript:/data:/vbscript: URLs - they
+# simply are not "http" or "https".
+ALLOWED_IMAGE_URL_SCHEMES = {"http", "https"}
 
 # price is DECIMAL(14, 2): 12 digits before the point, 2 after.
 MAX_PRICE = 10 ** 12 - 0.01
@@ -122,6 +133,51 @@ def validate_property_payload(form, valid_ids):
     if errors:
         return errors, None
     return [], cleaned
+
+
+def validate_image_urls(raw_urls):
+    """Validate the gallery URLs typed into the create/edit form.
+
+    `raw_urls` is a list of strings (typically request.form.getlist
+    ("image_urls")). A blank entry (an empty row the user never filled in)
+    is silently dropped rather than treated as an error. Every non-blank
+    entry must be a plain http:// or https:// URL with a domain - this is
+    what rejects javascript:, data:, vbscript: and any other scheme.
+
+    Returns (errors, cleaned): `errors` is a list of human-readable
+    messages (empty when every URL is fine); `cleaned` is the ordered
+    list of URLs to store (their position becomes property_images.
+    sort_order), always returned even when there are errors, so the
+    caller can decide whether to use it.
+    """
+    errors = []
+    cleaned = []
+
+    for raw in raw_urls:
+        url = (raw or "").strip()
+        if not url:
+            continue
+
+        if len(url) > IMAGE_URL_MAX_LENGTH:
+            errors.append(
+                "Image URL is too long (max " + str(IMAGE_URL_MAX_LENGTH) + " characters)."
+            )
+            continue
+
+        parsed = urlsplit(url)
+        if parsed.scheme.lower() not in ALLOWED_IMAGE_URL_SCHEMES:
+            errors.append("Image URL must start with http:// or https://.")
+            continue
+        if not parsed.netloc:
+            errors.append("Image URL is missing a domain.")
+            continue
+
+        cleaned.append(url)
+
+    if len(cleaned) > MAX_IMAGES_PER_PROPERTY:
+        errors.append("A property can have at most " + str(MAX_IMAGES_PER_PROPERTY) + " images.")
+
+    return errors, cleaned
 
 
 # =====================================================================

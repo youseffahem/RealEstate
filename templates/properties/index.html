@@ -92,6 +92,14 @@
     {% for property in properties %}
     <article class="card property-card">
 
+        {% if property.primary_image %}
+        <div class="property-card-media">
+            <img src="{{ property.primary_image }}" alt="{{ property.title }}" loading="lazy">
+        </div>
+        {% else %}
+        <div class="property-card-media is-empty" aria-hidden="true">{{ ico.icon('home', 22) }}</div>
+        {% endif %}
+
         <h2>{{ ico.icon('home', 16) }} <span title="{{ property.title }}">{{ property.title|truncate(42, True, '…') }}</span></h2>
 
         <span class="user-row row-wrap property-badges">
