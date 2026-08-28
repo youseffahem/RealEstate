@@ -1,0 +1,183 @@
+{# Shared by add.html and edit.html so both pages stay visually identical -
+   the same pattern _product_form.html already uses.
+   Expects: form_action, submit_label, property, property_types, locations,
+   agents, listing_types, statuses.
+
+   The two sections sit in .form-grid, which is a 55/45 two-column grid on a
+   desktop and a single column below 980px - unchanged from the product form. #}
+{% import "_icons.html" as ico %}
+
+<div class="form-grid">
+
+    <section class="card form-card">
+        <h2>{{ ico.icon('home') }} Property details</h2>
+
+        <form id="property-form" action="{{ form_action }}" method="POST">
+
+            <div class="form-group">
+                <label for="title">Property title</label>
+                <input type="text" name="title" id="title" placeholder="e.g. Modern Luxury Villa"
+                       value="{{ property.title }}" autocomplete="off" required
+                       maxlength="180" aria-describedby="title-hint" data-preview="title">
+                <span class="field-hint" id="title-hint">Up to 180 characters.</span>
+            </div>
+
+            <div class="form-row">
+                <div class="form-group">
+                    <label for="property_type_id">Property type</label>
+                    <select name="property_type_id" id="property_type_id" required data-preview="type">
+                        <option value="">Select a property type</option>
+                        {% for type in property_types %}
+                        <option value="{{ type.id }}"
+                            {% if property.property_type_id|string == type.id|string %}selected{% endif %}>
+                            {{ type.name }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+
+                <div class="form-group">
+                    <label for="listing_type">Listing type</label>
+                    <select name="listing_type" id="listing_type" required data-preview="listingType">
+                        <option value="">Select a listing type</option>
+                        {% for lt in listing_types %}
+                        <option value="{{ lt }}" {% if property.listing_type == lt %}selected{% endif %}>{{ lt }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+            </div>
+
+            <div class="form-row">
+                <div class="form-group">
+                    <label for="location_id">Location</label>
+                    <select name="location_id" id="location_id" required data-preview="location">
+                        <option value="">Select a location</option>
+                        {% for loc in locations %}
+                        <option value="{{ loc.id }}"
+                            {% if property.location_id|string == loc.id|string %}selected{% endif %}>
+                            {{ loc.name }}, {{ loc.city }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+
+                <div class="form-group">
+                    <label for="agent_id">Agent</label>
+                    <select name="agent_id" id="agent_id">
+                        <option value="">No agent assigned</option>
+                        {% for agent in agents %}
+                        <option value="{{ agent.id }}"
+                            {% if property.agent_id and property.agent_id|string == agent.id|string %}selected{% endif %}>
+                            {{ agent.name }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+            </div>
+
+            <div class="form-row">
+                <div class="form-group">
+                    <label for="price">Price</label>
+                    <input type="text" name="price" id="price" inputmode="decimal" placeholder="0.00"
+                           value="{{ property.price }}" autocomplete="off" required
+                           aria-describedby="price-hint" data-preview="price">
+                    <span class="field-hint" id="price-hint">Numbers only, in US dollars.</span>
+                </div>
+
+                <div class="form-group">
+                    <label for="area_sqm">Area (m²)</label>
+                    <input type="text" name="area_sqm" id="area_sqm" inputmode="decimal" placeholder="0.00"
+                           value="{{ property.area_sqm }}" autocomplete="off" required
+                           aria-describedby="area-hint" data-preview="area">
+                    <span class="field-hint" id="area-hint">Square meters, greater than zero.</span>
+                </div>
+            </div>
+
+            <div class="form-row">
+                <div class="form-group">
+                    <label for="bedrooms">Bedrooms</label>
+                    <input type="number" name="bedrooms" id="bedrooms" min="0" step="1" placeholder="e.g. 3"
+                           value="{{ property.bedrooms if property.bedrooms is not none else '' }}"
+                           autocomplete="off" data-preview="bedrooms">
+                </div>
+
+                <div class="form-group">
+                    <label for="bathrooms">Bathrooms</label>
+                    <input type="number" name="bathrooms" id="bathrooms" min="0" step="1" placeholder="e.g. 2"
+                           value="{{ property.bathrooms if property.bathrooms is not none else '' }}"
+                           autocomplete="off" data-preview="bathrooms">
+                </div>
+            </div>
+
+            <div class="form-group">
+                <label for="status">Status</label>
+                <select name="status" id="status" required data-preview="status">
+                    {% for s in statuses %}
+                    <option value="{{ s }}" {% if property.status == s %}selected{% endif %}>{{ s }}</option>
+                    {% endfor %}
+                </select>
+                <span class="field-hint">A "For Sale" property can't be Rented, and a "For Rent" property can't be
+                    Sold.</span>
+            </div>
+
+            <div class="form-group">
+                <label for="description">Description</label>
+                <textarea name="description" id="description" rows="4"
+                          placeholder="Describe this property for prospective buyers or tenants"
+                          aria-describedby="description-hint"
+                          data-preview="description">{{ property.description or '' }}</textarea>
+                <span class="field-hint" id="description-hint">Shown on the property's details page.</span>
+            </div>
+
+        </form>
+
+        <span class="input-group form-actions">
+            <a href="{{ url_for('properties_manage') }}" class="btn-link-secondary btn-cancel">Cancel</a>
+            <span class="user-info" aria-hidden="true"></span>
+            <button type="submit" form="property-form">{{ ico.icon('check', 15) }} {{ submit_label }}</button>
+        </span>
+    </section>
+
+    <!-- ===== Live preview: how this property will appear in Property Management ===== -->
+    <section class="card preview-card">
+        <h2>{{ ico.icon('sparkle') }} Live property preview</h2>
+
+        <div class="preview-stack">
+
+            <div class="user-row row-wrap">
+                <span class="user-avatar" aria-hidden="true" data-preview-out="avatar">—</span>
+                <span class="user-info">
+                    <span class="user-name" data-preview-out="title" data-preview-empty="Property title">Property
+                        title</span>
+                    <span class="user-date">
+                        <span data-preview-out="type" data-preview-empty="Property type">Property type</span> ·
+                        <span data-preview-out="listingType" data-preview-empty="Listing type">Listing type</span> ·
+                        <span data-preview-out="status" data-preview-empty="Status">Status</span>
+                    </span>
+                </span>
+            </div>
+
+            <span class="price-value property-price" data-preview-out="price">$0.00</span>
+
+            <span class="user-row">
+                {{ ico.icon('map-pin', 14) }}
+                <span class="user-date" data-preview-out="location"
+                    data-preview-empty="Location will appear here">Location will appear here</span>
+            </span>
+
+            <span class="user-row row-wrap property-meta">
+                <span class="user-row">{{ ico.icon('area', 14) }}<span data-preview-out="area"
+                        data-preview-empty="—">—</span>&nbsp;m²</span>
+                <span class="user-row">{{ ico.icon('bed', 14) }}<span data-preview-out="bedrooms"
+                        data-preview-empty="—">—</span>&nbsp;Bedrooms</span>
+                <span class="user-row">{{ ico.icon('bath', 14) }}<span data-preview-out="bathrooms"
+                        data-preview-empty="—">—</span>&nbsp;Bathrooms</span>
+            </span>
+
+        </div>
+
+        <div class="submission-message" data-preview-out="description"
+            data-preview-empty="Your description will appear here.">Your description will appear here.</div>
+
+        <p class="field-hint preview-note">This updates as you type. It is exactly how the property will be listed
+            on the Properties page.</p>
+    </section>
+
+</div>

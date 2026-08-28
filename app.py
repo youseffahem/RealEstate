@@ -1,10 +1,14 @@
+import datetime
+import decimal
 import math
 import os
 
 import mysql.connector
 from dotenv import load_dotenv
-from flask import Flask, flash, redirect, render_template, request, url_for
+from flask import Flask, flash, jsonify, redirect, render_template, request, url_for
 
+import property_queries
+import property_validation
 import real_estate_db
 
 # Load the settings from the .env file
@@ -363,6 +367,8 @@ def delete_product(id):
 # ===== Handle unknown pages / invalid product ids =====
 @app.errorhandler(404)
 def page_not_found(error):
+    if _wants_json():
+        return jsonify({"error": "That page does not exist."}), 404
     flash("That page does not exist!", "error")
     return redirect(url_for("index"))
 
@@ -370,10 +376,482 @@ def page_not_found(error):
 # ===== Handle a wrong method, e.g. opening /delete/1 in the address bar =====
 @app.errorhandler(405)
 def method_not_allowed(error):
+    if _wants_json():
+        return jsonify({"error": "That method is not allowed on this URL."}), 405
     # Delete is POST only, so reaching it any other way lands back on the
     # catalog inside our own design instead of on the default error page.
     flash("That action has to be done from the page itself!", "error")
     return redirect(url_for("index"))
+
+
+# =====================================================================
+# PHASE 2 - REAL ESTATE BACKEND
+# =====================================================================
+#
+# The routes below are the backend of the REAL ESTATE Management
+# System: full CRUD for `properties`, plus the reference data (property
+# types, locations, agents) and dashboard statistics a future UI needs.
+#
+# The visual system is frozen for this phase and none of the existing
+# templates model a property (title, type, location, agent, listing type,
+# area, bedrooms/bathrooms...), and index.html/add.html/edit.html hard-code
+# url_for('edit_product'/'delete_product') links that would silently point
+# a "property" row at the unrelated legacy product with the same id. Rather
+# than force property data through a template built for a different shape
+# and quietly break those links, these routes are a small JSON API - a
+# real, working backend layer that Phase 3 can wire a dedicated UI onto
+# without ever having needed to touch app.py again. See the Phase 2 report
+# for the full reasoning.
+
+
+def _wants_json():
+    """True for the new /properties API, so its own error responses are
+    JSON instead of the legacy flash-and-redirect used by the product
+    pages. Non-/properties URLs (typos, old bookmarks, etc.) keep the
+    existing behaviour untouched."""
+    return request.path.startswith("/properties")
+
+
+def _json_safe(value):
+    """Make a database value JSON-serialisable: DECIMAL -> float,
+    TIMESTAMP -> ISO 8601 text. Everything else passes through unchanged."""
+    if isinstance(value, decimal.Decimal):
+        return float(value)
+    if isinstance(value, (datetime.datetime, datetime.date)):
+        return value.isoformat()
+    return value
+
+
+def _serialize_property(row):
+    """A property row (from property_queries) as a plain JSON-ready dict."""
+    return {key: _json_safe(value) for key, value in row.items()}
+
+
+def get_property_form_data():
+    """Read the property fields sent by the form/JSON body."""
+    return {
+        "title": request.form.get("title", ""),
+        "description": request.form.get("description", ""),
+        "property_type_id": request.form.get("property_type_id", ""),
+        "location_id": request.form.get("location_id", ""),
+        "agent_id": request.form.get("agent_id", ""),
+        "listing_type": request.form.get("listing_type", ""),
+        "price": request.form.get("price", ""),
+        "area_sqm": request.form.get("area_sqm", ""),
+        "bedrooms": request.form.get("bedrooms", ""),
+        "bathrooms": request.form.get("bathrooms", ""),
+        "status": request.form.get("status", ""),
+    }
+
+
+def _property_filters_from_query_string():
+    """Turn ?status=Available&min_price=100000... into the filters dict
+    property_queries.get_all_properties() understands. Anything missing or
+    malformed is simply left out - filtering is best-effort, it never 500s."""
+    args = request.args
+    filters = {}
+
+    if args.get("status"):
+        filters["status"] = args["status"]
+    if args.get("listing_type"):
+        filters["listing_type"] = args["listing_type"]
+    if args.get("q"):
+        filters["q"] = args["q"]
+
+    for key in ("property_type_id", "location_id"):
+        raw = args.get(key)
+        if raw:
+            try:
+                filters[key] = int(raw)
+            except ValueError:
+                pass
+
+    for key in ("min_price", "max_price", "min_area", "max_area"):
+        raw = args.get(key)
+        if raw:
+            try:
+                filters[key] = float(raw)
+            except ValueError:
+                pass
+
+    return filters
+
+
+def _reference_payload(reference):
+    """Reference data plus the fixed enum choices, ready for jsonify."""
+    payload = dict(reference)
+    payload["listing_types"] = list(property_validation.LISTING_TYPES)
+    payload["statuses"] = list(property_validation.STATUSES)
+    return payload
+
+
+# ===== READ - list properties, with optional filters =====
+@app.route("/properties")
+def properties_list():
+    try:
+        connection = get_connection()
+        rows = property_queries.get_all_properties(connection, _property_filters_from_query_string())
+        connection.close()
+    except mysql.connector.Error as error:
+        app.logger.error("Database error while listing properties: %s", error)
+        return jsonify({"error": "Could not load the properties. Please try again later."}), 500
+
+    return jsonify({
+        "count": len(rows),
+        "properties": [_serialize_property(row) for row in rows],
+    })
+
+
+# ===== READ - dashboard statistics (see property_queries.get_property_stats) =====
+@app.route("/properties/stats")
+def properties_stats():
+    try:
+        connection = get_connection()
+        stats = property_queries.get_property_stats(connection)
+        connection.close()
+    except mysql.connector.Error as error:
+        app.logger.error("Database error while loading property statistics: %s", error)
+        return jsonify({"error": "Could not load the statistics. Please try again later."}), 500
+
+    return jsonify(stats)
+
+
+# ===== READ - one property, joined with its type/location/agent =====
+@app.route("/properties/<int:id>")
+def property_detail(id):
+    try:
+        connection = get_connection()
+        row = property_queries.get_property_by_id(connection, id)
+        connection.close()
+    except mysql.connector.Error as error:
+        app.logger.error("Database error while loading property %s: %s", id, error)
+        return jsonify({"error": "Could not load this property. Please try again later."}), 500
+
+    if row is None:
+        return jsonify({"error": "That property does not exist."}), 404
+
+    return jsonify({"property": _serialize_property(row)})
+
+
+# ===== CREATE - add a new property =====
+@app.route("/properties/add", methods=["GET", "POST"])
+def properties_add():
+    try:
+        connection = get_connection()
+    except mysql.connector.Error as error:
+        app.logger.error("Database error: %s", error)
+        return jsonify({"error": "The database is unavailable. Please try again later."}), 500
+
+    if request.method == "GET":
+        reference = property_queries.get_reference_data(connection)
+        connection.close()
+        return jsonify(_reference_payload(reference))
+
+    try:
+        valid_ids = property_queries.get_valid_ids(connection)
+        errors, cleaned = property_validation.validate_property_payload(
+            get_property_form_data(), valid_ids
+        )
+        if errors:
+            connection.close()
+            return jsonify({"errors": errors}), 400
+
+        new_id = property_queries.create_property(connection, cleaned)
+    except mysql.connector.Error as error:
+        app.logger.error("Database error while creating a property: %s", error)
+        return jsonify({"error": "Could not save the property. Please try again later."}), 500
+    finally:
+        connection.close()
+
+    return redirect(url_for("property_detail", id=new_id), code=303)
+
+
+# ===== UPDATE - edit an existing property =====
+@app.route("/properties/edit/<int:id>", methods=["GET", "POST"])
+def properties_edit(id):
+    try:
+        connection = get_connection()
+    except mysql.connector.Error as error:
+        app.logger.error("Database error: %s", error)
+        return jsonify({"error": "The database is unavailable. Please try again later."}), 500
+
+    if request.method == "GET":
+        row = property_queries.get_property_by_id(connection, id)
+        if row is None:
+            connection.close()
+            return jsonify({"error": "That property does not exist."}), 404
+        reference = property_queries.get_reference_data(connection)
+        connection.close()
+        payload = _reference_payload(reference)
+        payload["property"] = _serialize_property(row)
+        return jsonify(payload)
+
+    try:
+        existing = property_queries.get_property_by_id(connection, id)
+        if existing is None:
+            connection.close()
+            return jsonify({"error": "That property does not exist."}), 404
+
+        valid_ids = property_queries.get_valid_ids(connection)
+        errors, cleaned = property_validation.validate_property_payload(
+            get_property_form_data(), valid_ids
+        )
+        if errors:
+            connection.close()
+            return jsonify({"errors": errors}), 400
+
+        property_queries.update_property(connection, id, cleaned)
+    except mysql.connector.Error as error:
+        app.logger.error("Database error while updating property %s: %s", id, error)
+        return jsonify({"error": "Could not update the property. Please try again later."}), 500
+    finally:
+        connection.close()
+
+    return redirect(url_for("property_detail", id=id), code=303)
+
+
+# ===== DELETE - remove a property (POST only - never on GET) =====
+@app.route("/properties/delete/<int:id>", methods=["POST"])
+def properties_delete(id):
+    try:
+        connection = get_connection()
+        deleted = property_queries.delete_property(connection, id)
+        connection.close()
+    except mysql.connector.Error as error:
+        app.logger.error("Database error while deleting property %s: %s", id, error)
+        return jsonify({"error": "Could not delete the property. Please try again later."}), 500
+
+    if deleted == 0:
+        return jsonify({"error": "That property does not exist."}), 404
+
+    return redirect(url_for("properties_list"), code=303)
+
+
+# =====================================================================
+# PHASE 3 - REAL ESTATE FRONTEND
+# =====================================================================
+#
+# HTML pages for the property system. Every one of these is a thin
+# controller, exactly like the JSON API above and the legacy product
+# routes at the top of this file: it calls straight into
+# property_queries.py / property_validation.py for the actual database
+# work and the business rules, so there is exactly one implementation of
+# property CRUD in the whole app - this section only renders it.
+#
+# These live at their own URLs (/dashboard, /properties/manage,
+# /properties/view/<id>, /properties/new, /properties/<id>/edit,
+# /properties/<id>/delete) instead of reusing the JSON routes' paths,
+# because those routes are tested to always answer in JSON (see
+# tests/test_properties.py - e.g. GET /properties/<id> is asserted to be
+# "served as application/json, never text/html"). A create/update/delete
+# made from the UI has to land the browser back on an HTML page, not a
+# raw JSON response, so it needed its own paths rather than content
+# negotiation on the existing ones.
+
+_EMPTY_PROPERTY_FORM = {
+    "title": "", "description": "", "property_type_id": "", "location_id": "",
+    "agent_id": "", "listing_type": "", "price": "", "area_sqm": "",
+    "bedrooms": "", "bathrooms": "", "status": "Available",
+}
+
+
+def _property_reference_or_empty():
+    """Reference data for the create/edit selects. Never raises - an
+    unreachable database just means empty dropdowns and a flashed error,
+    the same "still show the page" rule the rest of the app follows."""
+    try:
+        connection = get_connection()
+        reference = property_queries.get_reference_data(connection)
+        connection.close()
+        return reference
+    except mysql.connector.Error as error:
+        app.logger.error("Database error while loading reference data: %s", error)
+        flash("Could not load property types, locations or agents. Please try again later.", "error")
+        return {"property_types": [], "locations": [], "agents": []}
+
+
+def _render_property_form(template, form_action, submit_label, property_data):
+    """Shared GET-render for the create and edit pages: the reference
+    data for the selects, plus whatever the caller already has for the
+    fields themselves (empty defaults, a prefilled property, or a
+    rejected submission the user should see again with what they typed)."""
+    reference = _property_reference_or_empty()
+    return render_template(
+        template,
+        form_action=form_action,
+        submit_label=submit_label,
+        property=property_data,
+        property_types=reference["property_types"],
+        locations=reference["locations"],
+        agents=reference["agents"],
+        listing_types=property_validation.LISTING_TYPES,
+        statuses=property_validation.STATUSES,
+    )
+
+
+# ===== Real Estate Dashboard =====
+@app.route("/dashboard")
+def dashboard():
+    try:
+        connection = get_connection()
+        stats = property_queries.get_property_stats(connection)
+        connection.close()
+    except mysql.connector.Error as error:
+        app.logger.error("Database error while loading the dashboard: %s", error)
+        flash("Could not load the dashboard statistics. Please try again later.", "error")
+        stats = {"total": 0, "available": 0, "reserved": 0, "sold": 0, "rented": 0,
+                 "total_value": 0.0, "average_price": 0.0}
+
+    return render_template("dashboard.html", stats=stats)
+
+
+# ===== Property Management - list, search and filter =====
+@app.route("/properties/manage")
+def properties_manage():
+    properties = []
+    try:
+        connection = get_connection()
+        properties = property_queries.get_all_properties(connection, _property_filters_from_query_string())
+        reference = property_queries.get_reference_data(connection)
+        connection.close()
+    except mysql.connector.Error as error:
+        app.logger.error("Database error while listing properties: %s", error)
+        flash("Could not load the properties. Please try again later.", "error")
+        reference = {"property_types": [], "locations": [], "agents": []}
+
+    return render_template(
+        "properties/index.html",
+        properties=properties,
+        property_types=reference["property_types"],
+        listing_types=property_validation.LISTING_TYPES,
+        statuses=property_validation.STATUSES,
+        filters=request.args,
+    )
+
+
+# ===== Property Details =====
+@app.route("/properties/view/<int:id>")
+def property_view(id):
+    try:
+        connection = get_connection()
+        row = property_queries.get_property_by_id(connection, id)
+        connection.close()
+    except mysql.connector.Error as error:
+        app.logger.error("Database error while loading property %s: %s", id, error)
+        flash("Could not load this property. Please try again later.", "error")
+        return redirect(url_for("properties_manage"))
+
+    if row is None:
+        flash("That property does not exist!", "error")
+        return redirect(url_for("properties_manage"))
+
+    return render_template("properties/detail.html", property=row)
+
+
+# ===== Create Property =====
+@app.route("/properties/new", methods=["GET", "POST"])
+def properties_new():
+    if request.method == "POST":
+        data = get_property_form_data()
+
+        try:
+            connection = get_connection()
+        except mysql.connector.Error as error:
+            app.logger.error("Database error: %s", error)
+            flash("The database is unavailable. Please try again later.", "error")
+            return _render_property_form("properties/add.html", url_for("properties_new"),
+                                          "Create property", data)
+
+        try:
+            valid_ids = property_queries.get_valid_ids(connection)
+            errors, cleaned = property_validation.validate_property_payload(data, valid_ids)
+            if errors:
+                for error in errors:
+                    flash(error, "error")
+                return _render_property_form("properties/add.html", url_for("properties_new"),
+                                              "Create property", data)
+
+            new_id = property_queries.create_property(connection, cleaned)
+        except mysql.connector.Error as error:
+            app.logger.error("Database error while creating a property: %s", error)
+            flash("Could not save the property. Please try again later.", "error")
+            return _render_property_form("properties/add.html", url_for("properties_new"),
+                                          "Create property", data)
+        finally:
+            connection.close()
+
+        flash('"' + cleaned["title"] + '" has been added!', "success")
+        return redirect(url_for("property_view", id=new_id))
+
+    return _render_property_form("properties/add.html", url_for("properties_new"),
+                                  "Create property", _EMPTY_PROPERTY_FORM)
+
+
+# ===== Edit Property =====
+@app.route("/properties/<int:id>/edit", methods=["GET", "POST"])
+def properties_edit_page(id):
+    try:
+        connection = get_connection()
+    except mysql.connector.Error as error:
+        app.logger.error("Database error: %s", error)
+        flash("The database is unavailable. Please try again later.", "error")
+        return redirect(url_for("properties_manage"))
+
+    existing = property_queries.get_property_by_id(connection, id)
+    if existing is None:
+        connection.close()
+        flash("That property does not exist!", "error")
+        return redirect(url_for("properties_manage"))
+
+    if request.method == "POST":
+        data = get_property_form_data()
+        try:
+            valid_ids = property_queries.get_valid_ids(connection)
+            errors, cleaned = property_validation.validate_property_payload(data, valid_ids)
+            if errors:
+                for error in errors:
+                    flash(error, "error")
+                return _render_property_form("properties/edit.html",
+                                              url_for("properties_edit_page", id=id),
+                                              "Save changes", data)
+
+            property_queries.update_property(connection, id, cleaned)
+        except mysql.connector.Error as error:
+            app.logger.error("Database error while updating property %s: %s", id, error)
+            flash("Could not update the property. Please try again later.", "error")
+            return _render_property_form("properties/edit.html",
+                                          url_for("properties_edit_page", id=id),
+                                          "Save changes", data)
+        finally:
+            connection.close()
+
+        flash('"' + cleaned["title"] + '" has been updated!', "success")
+        return redirect(url_for("property_view", id=id))
+
+    connection.close()
+    return _render_property_form("properties/edit.html", url_for("properties_edit_page", id=id),
+                                  "Save changes", existing)
+
+
+# ===== Delete Property (POST only - never on GET) =====
+@app.route("/properties/<int:id>/delete", methods=["POST"])
+def properties_delete_page(id):
+    try:
+        connection = get_connection()
+        row = property_queries.get_property_by_id(connection, id)
+        deleted = property_queries.delete_property(connection, id) if row else 0
+        connection.close()
+    except mysql.connector.Error as error:
+        app.logger.error("Database error while deleting property %s: %s", id, error)
+        flash("Could not delete the property. Please try again later.", "error")
+        return redirect(url_for("properties_manage"))
+
+    if deleted == 0:
+        flash("That property does not exist!", "error")
+    else:
+        flash('"' + row["title"] + '" has been deleted!', "success")
+
+    return redirect(url_for("properties_manage"))
 
 
 if __name__ == "__main__":

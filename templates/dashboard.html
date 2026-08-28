@@ -1,0 +1,95 @@
+{% extends "base.html" %}
+{% import "_icons.html" as ico %}
+
+{% block title %}Dashboard · REAL ESTATE{% endblock %}
+
+{# .shell-wide: full width up to 1320px, same column the product dashboard uses. #}
+{% block shell_class %}shell-wide{% endblock %}
+
+{% block heading %}Real Estate Dashboard{% endblock %}
+{% block subtitle %}A live overview of your property portfolio, read straight from MySQL.{% endblock %}
+
+{% block content %}
+
+<!-- ===== Live statistics, read from property_queries.get_property_stats() ===== -->
+<section class="user-row stats-row" aria-label="Portfolio overview">
+
+    <article class="card user-info col-stat stat-card stat-accent-cyan">
+        <h2 class="stat-head">
+            <span class="stat-icon">{{ ico.icon('home', 18) }}</span>
+            <span class="stat-value">{{ stats.total }}</span>
+        </h2>
+        <span class="user-date stat-label">Total properties</span>
+    </article>
+
+    <article class="card user-info col-stat stat-card stat-accent-success">
+        <h2 class="stat-head">
+            <span class="stat-icon">{{ ico.icon('check', 18) }}</span>
+            <span class="stat-value">{{ stats.available }}</span>
+        </h2>
+        <span class="user-date stat-label">Available</span>
+    </article>
+
+    <article class="card user-info col-stat stat-card stat-accent-violet">
+        <h2 class="stat-head">
+            <span class="stat-icon">{{ ico.icon('alert', 18) }}</span>
+            <span class="stat-value">{{ stats.reserved }}</span>
+        </h2>
+        <span class="user-date stat-label">Reserved</span>
+    </article>
+
+    <article class="card user-info col-stat stat-card stat-accent-error">
+        <h2 class="stat-head">
+            <span class="stat-icon">{{ ico.icon('tag', 18) }}</span>
+            <span class="stat-value">{{ stats.sold }}</span>
+        </h2>
+        <span class="user-date stat-label">Sold</span>
+    </article>
+
+    <article class="card user-info col-stat stat-card stat-accent-purple">
+        <h2 class="stat-head">
+            <span class="stat-icon">{{ ico.icon('key', 18) }}</span>
+            <span class="stat-value">{{ stats.rented }}</span>
+        </h2>
+        <span class="user-date stat-label">Rented</span>
+    </article>
+
+    <article class="card user-info col-stat stat-card stat-accent-crimson">
+        <h2 class="stat-head">
+            <span class="stat-icon">{{ ico.icon('wallet', 18) }}</span>
+            <span class="stat-value">${{ stats.total_value|money }}</span>
+        </h2>
+        <span class="user-date stat-label">Total portfolio value</span>
+    </article>
+
+    <article class="card user-info col-stat stat-card stat-accent-pink">
+        <h2 class="stat-head">
+            <span class="stat-icon">{{ ico.icon('trending', 18) }}</span>
+            <span class="stat-value">${{ stats.average_price|money }}</span>
+        </h2>
+        <span class="user-date stat-label">Average property price</span>
+    </article>
+
+</section>
+
+<!-- ===== Quick actions ===== -->
+<section class="card">
+    <h2>{{ ico.icon('layers') }} Quick actions</h2>
+    <p class="submission-message">
+        <span class="user-row row-wrap">
+            {{ ico.icon('home', 20) }}
+            <span class="user-info">
+                <span class="user-name">Manage your portfolio</span>
+                <span>Browse, search and filter every listing, or add a new property to the catalog.</span>
+            </span>
+            <span class="input-group">
+                <a href="{{ url_for('properties_manage') }}" class="btn-link-secondary btn-cancel">
+                    {{ ico.icon('search', 14) }} View properties</a>
+                <a href="{{ url_for('properties_new') }}" class="btn-link-primary">
+                    {{ ico.icon('plus', 15) }} Add&nbsp;property</a>
+            </span>
+        </span>
+    </p>
+</section>
+
+{% endblock %}

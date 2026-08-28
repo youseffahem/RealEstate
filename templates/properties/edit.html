@@ -1,0 +1,28 @@
+{% extends "base.html" %}
+{% import "_icons.html" as ico %}
+
+{% block title %}Edit property · REAL ESTATE{% endblock %}
+
+{# .shell-form: a wider column than .container, so the form and the live
+   preview can sit side by side on a desktop - same as the product form. #}
+{% block shell_class %}shell-form{% endblock %}
+
+{% block breadcrumb %}
+    <span class="form-group input-group">
+        <a href="{{ url_for('properties_manage') }}" class="btn-link-secondary btn-cancel">{{ ico.icon('arrow-left', 14) }}
+            Back to properties</a>
+        <span class="user-info" aria-hidden="true"></span>
+    </span>
+{% endblock %}
+
+{% block heading %}Edit property{% endblock %}
+{% block subtitle %}Update this property's information.{% endblock %}
+
+{# form_action, submit_label, property and the reference lists all come
+   from app.py's _render_property_form() - no need to recompute them here.
+   (property.id is not always present here - a rejected submission is
+   re-rendered from the raw posted fields, which have no id - so this page
+   must never rebuild form_action from property.id itself.) #}
+{% block content %}
+    {% include "properties/_property_form.html" %}
+{% endblock %}

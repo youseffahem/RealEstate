@@ -1,0 +1,152 @@
+{% extends "base.html" %}
+{% import "_icons.html" as ico %}
+
+{% block title %}{{ property.title }} · REAL ESTATE{% endblock %}
+
+{% block shell_class %}shell-wide{% endblock %}
+
+{% block breadcrumb %}
+    <span class="form-group input-group">
+        <a href="{{ url_for('properties_manage') }}" class="btn-link-secondary btn-cancel">{{ ico.icon('arrow-left', 14) }}
+            Back to properties</a>
+        <span class="user-info" aria-hidden="true"></span>
+    </span>
+{% endblock %}
+
+{% block heading %}Property Details{% endblock %}
+{% block subtitle %}Full information for this listing.{% endblock %}
+
+{% block content %}
+
+<section class="card">
+
+    <h2>{{ ico.icon('home') }} {{ property.title }}</h2>
+
+    <span class="user-row row-wrap property-badges">
+        <span class="badge-pill {{ 'badge-listing-sale' if property.listing_type == 'For Sale' else 'badge-listing-rent' }}">
+            {{ property.listing_type }}</span>
+        <span class="badge-pill badge-status-{{ property.status|lower }}">{{ property.status }}</span>
+    </span>
+
+    <span class="property-price price-value">${{ property.price|money }}</span>
+
+    <dl class="detail-grid">
+
+        <div class="detail-field">
+            <dt>Property type</dt>
+            <dd>{{ property.property_type }}</dd>
+        </div>
+
+        <div class="detail-field">
+            <dt>Listing type</dt>
+            <dd>{{ property.listing_type }}</dd>
+        </div>
+
+        <div class="detail-field">
+            <dt>Status</dt>
+            <dd>{{ property.status }}</dd>
+        </div>
+
+        <div class="detail-field">
+            <dt>Price</dt>
+            <dd>${{ property.price|money }}</dd>
+        </div>
+
+        <div class="detail-field">
+            <dt>Location</dt>
+            <dd>{{ property.location_name }}</dd>
+        </div>
+
+        <div class="detail-field">
+            <dt>City</dt>
+            <dd>{{ property.location_city }}</dd>
+        </div>
+
+        <div class="detail-field">
+            <dt>Area</dt>
+            <dd>{{ property.area_sqm }} m²</dd>
+        </div>
+
+        <div class="detail-field">
+            <dt>Bedrooms</dt>
+            <dd>{{ property.bedrooms if property.bedrooms is not none else '—' }}</dd>
+        </div>
+
+        <div class="detail-field">
+            <dt>Bathrooms</dt>
+            <dd>{{ property.bathrooms if property.bathrooms is not none else '—' }}</dd>
+        </div>
+
+        <div class="detail-field">
+            <dt>Agent</dt>
+            <dd>{{ property.agent_name or 'No agent assigned' }}</dd>
+        </div>
+
+        <div class="detail-field">
+            <dt>Agent email</dt>
+            <dd>
+                {% if property.agent_email %}
+                <a href="mailto:{{ property.agent_email }}">{{ property.agent_email }}</a>
+                {% else %}—{% endif %}
+            </dd>
+        </div>
+
+        <div class="detail-field">
+            <dt>Agent phone</dt>
+            <dd>
+                {% if property.agent_phone %}
+                <a href="tel:{{ property.agent_phone }}">{{ property.agent_phone }}</a>
+                {% else %}—{% endif %}
+            </dd>
+        </div>
+
+        <div class="detail-field">
+            <dt>Created</dt>
+            <dd>{{ property.created_at.strftime('%b %d, %Y · %H:%M') if property.created_at else '—' }}</dd>
+        </div>
+
+        <div class="detail-field">
+            <dt>Last updated</dt>
+            <dd>{{ property.updated_at.strftime('%b %d, %Y · %H:%M') if property.updated_at else '—' }}</dd>
+        </div>
+
+        <div class="detail-field detail-description">
+            <dt>Description</dt>
+            <dd>{{ property.description or 'No description provided.' }}</dd>
+        </div>
+
+    </dl>
+
+</section>
+
+<span class="input-group form-actions row-wrap">
+    <a href="{{ url_for('properties_manage') }}" class="btn-link-secondary btn-cancel">{{ ico.icon('arrow-left', 14) }}
+        Back to properties</a>
+    <span class="user-info" aria-hidden="true"></span>
+    <a href="{{ url_for('properties_edit_page', id=property.id) }}" class="btn-link-primary">{{ ico.icon('pencil', 15) }}
+        Edit</a>
+    <form action="{{ url_for('properties_delete_page', id=property.id) }}" method="POST" class="inline-form"
+          data-delete-form data-item-name="{{ property.title }}">
+        <button type="submit" class="btn-danger">{{ ico.icon('trash', 15) }} Delete</button>
+    </form>
+</span>
+
+{% endblock %}
+
+{% block dialogs %}
+<!-- ===== Delete confirmation ===== -->
+<dialog class="card" data-delete-dialog aria-labelledby="delete-dialog-title">
+    <h2 id="delete-dialog-title">{{ ico.icon('trash', 18) }} Delete property?</h2>
+
+    <p class="submission-message">
+        Are you sure you want to delete <strong data-delete-name></strong>?
+        This action cannot be undone.
+    </p>
+
+    <span class="input-group">
+        <button type="button" class="btn-cancel" data-dialog-cancel>Cancel</button>
+        <span class="user-info" aria-hidden="true"></span>
+        <button type="button" class="btn-danger" data-dialog-confirm>Delete property</button>
+    </span>
+</dialog>
+{% endblock %}

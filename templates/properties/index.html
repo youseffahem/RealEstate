@@ -1,0 +1,198 @@
+{% extends "base.html" %}
+{% import "_icons.html" as ico %}
+
+{% block title %}Properties · REAL ESTATE{% endblock %}
+
+{# .shell-wide: full width up to 1320px, same column the dashboard uses. #}
+{% block shell_class %}shell-wide{% endblock %}
+
+{% block heading %}Property Management{% endblock %}
+{% block subtitle %}Browse, search and filter every listing in your portfolio.{% endblock %}
+
+{% block content %}
+
+<!-- ===== Search & filters - connected to property_queries.get_all_properties() ===== -->
+<section class="card">
+
+    <h2>{{ ico.icon('home') }} Properties <span class="badge" data-count>{{ properties|length }}</span></h2>
+
+    <form method="GET" action="{{ url_for('properties_manage') }}" class="filter-bar user-row row-wrap">
+
+        <span class="user-info field-grow">
+            <input type="search" name="q" value="{{ filters.get('q', '') }}"
+                   placeholder="Search by title, location or description…"
+                   aria-label="Search properties by title, location or description" autocomplete="off">
+        </span>
+
+        <select name="property_type_id" aria-label="Filter by property type">
+            <option value="">All types</option>
+            {% for type in property_types %}
+            <option value="{{ type.id }}" {% if filters.get('property_type_id') == type.id|string %}selected{% endif %}>
+                {{ type.name }}</option>
+            {% endfor %}
+        </select>
+
+        <select name="listing_type" aria-label="Filter by listing type">
+            <option value="">All listings</option>
+            {% for lt in listing_types %}
+            <option value="{{ lt }}" {% if filters.get('listing_type') == lt %}selected{% endif %}>{{ lt }}</option>
+            {% endfor %}
+        </select>
+
+        <select name="status" aria-label="Filter by status">
+            <option value="">All statuses</option>
+            {% for s in statuses %}
+            <option value="{{ s }}" {% if filters.get('status') == s %}selected{% endif %}>{{ s }}</option>
+            {% endfor %}
+        </select>
+
+        <span class="input-group">
+            <button type="submit">{{ ico.icon('search', 15) }} Search</button>
+        </span>
+
+        {% if filters %}
+        <a href="{{ url_for('properties_manage') }}" class="btn-link-secondary btn-cancel">{{ ico.icon('close', 13) }}
+            Clear</a>
+        {% endif %}
+
+        <details class="filter-details"
+            {% if filters.get('min_price') or filters.get('max_price') or filters.get('min_area') or filters.get('max_area') %}open{% endif %}>
+            <summary>{{ ico.icon('filter', 13) }} Price &amp; area range</summary>
+            <div class="user-row row-wrap">
+                <span class="filter-range">
+                    <label for="min_price" class="field-hint">Min price</label>
+                    <input type="number" name="min_price" id="min_price" min="0" step="0.01"
+                           value="{{ filters.get('min_price', '') }}">
+                </span>
+                <span class="filter-range">
+                    <label for="max_price" class="field-hint">Max price</label>
+                    <input type="number" name="max_price" id="max_price" min="0" step="0.01"
+                           value="{{ filters.get('max_price', '') }}">
+                </span>
+                <span class="filter-range">
+                    <label for="min_area" class="field-hint">Min area (m²)</label>
+                    <input type="number" name="min_area" id="min_area" min="0" step="0.01"
+                           value="{{ filters.get('min_area', '') }}">
+                </span>
+                <span class="filter-range">
+                    <label for="max_area" class="field-hint">Max area (m²)</label>
+                    <input type="number" name="max_area" id="max_area" min="0" step="0.01"
+                           value="{{ filters.get('max_area', '') }}">
+                </span>
+            </div>
+        </details>
+
+    </form>
+
+</section>
+
+{% if properties %}
+
+<div class="property-grid">
+    {% for property in properties %}
+    <article class="card property-card">
+
+        <h2>{{ ico.icon('home', 16) }} <span title="{{ property.title }}">{{ property.title|truncate(42, True, '…') }}</span></h2>
+
+        <span class="user-row row-wrap property-badges">
+            <span class="badge-pill {{ 'badge-listing-sale' if property.listing_type == 'For Sale' else 'badge-listing-rent' }}">
+                {{ property.listing_type }}</span>
+            <span class="badge-pill badge-status-{{ property.status|lower }}">{{ property.status }}</span>
+            <span class="user-date">{{ property.property_type }}</span>
+        </span>
+
+        <span class="property-price price-value">${{ property.price|money }}</span>
+
+        <span class="user-row">
+            {{ ico.icon('map-pin', 14) }}
+            <span class="user-date">{{ property.location_name }}, {{ property.location_city }}</span>
+        </span>
+
+        <span class="user-row row-wrap property-meta">
+            <span class="user-row">{{ ico.icon('area', 14) }} {{ property.area_sqm }}&nbsp;m²</span>
+            {% if property.bedrooms is not none %}
+            <span class="user-row">{{ ico.icon('bed', 14) }} {{ property.bedrooms }}
+                Bedroom{{ 's' if property.bedrooms != 1 else '' }}</span>
+            {% endif %}
+            {% if property.bathrooms is not none %}
+            <span class="user-row">{{ ico.icon('bath', 14) }} {{ property.bathrooms }}
+                Bathroom{{ 's' if property.bathrooms != 1 else '' }}</span>
+            {% endif %}
+        </span>
+
+        <span class="user-row property-agent">
+            {{ ico.icon('user', 14) }}
+            {% if property.agent_name %}Agent: {{ property.agent_name }}{% else %}No agent assigned{% endif %}
+        </span>
+
+        <!-- Actions: VIEW, EDIT and DELETE, always visible and always labelled -->
+        <span class="user-row property-actions">
+            <a href="{{ url_for('property_view', id=property.id) }}" class="btn-icon btn-action"
+               aria-label="View {{ property.title }}">{{ ico.icon('search', 15) }}<span class="btn-action-label">View</span></a>
+
+            <a href="{{ url_for('properties_edit_page', id=property.id) }}" class="btn-icon btn-action btn-edit"
+               aria-label="Edit {{ property.title }}">{{ ico.icon('pencil', 15) }}<span class="btn-action-label">Edit</span></a>
+
+            <form action="{{ url_for('properties_delete_page', id=property.id) }}" method="POST" class="inline-form"
+                  data-delete-form data-item-name="{{ property.title }}">
+                <button type="submit" class="btn-icon btn-action btn-delete"
+                        aria-label="Delete {{ property.title }}">{{ ico.icon('trash', 15) }}<span
+                            class="btn-action-label">Delete</span></button>
+            </form>
+        </span>
+
+    </article>
+    {% endfor %}
+</div>
+
+{% else %}
+
+<!-- Empty state: either the catalog itself is empty, or this search/filter combination has no matches -->
+<div class="submission-message">
+    <span class="user-row row-wrap">
+        {{ ico.icon('database', 22) }}
+        <span class="user-info">
+            {% if filters %}
+            <span class="user-name">No matching properties found.</span>
+            <span>Try changing your search or filters.</span>
+            {% else %}
+            <span class="user-name">No properties found.</span>
+            <span>Start building your portfolio by adding your first property. It will show up here straight
+                away.</span>
+            {% endif %}
+        </span>
+        {% if filters %}
+        <span class="input-group">
+            <a href="{{ url_for('properties_manage') }}" class="btn-link-secondary btn-cancel">{{ ico.icon('close', 14) }}
+                Clear search &amp; filters</a>
+        </span>
+        {% else %}
+        <span class="input-group">
+            <a href="{{ url_for('properties_new') }}" class="btn-link-primary">{{ ico.icon('plus', 15) }}
+                Add&nbsp;property</a>
+        </span>
+        {% endif %}
+    </span>
+</div>
+
+{% endif %}
+
+{% endblock %}
+
+{% block dialogs %}
+<!-- ===== Delete confirmation ===== -->
+<dialog class="card" data-delete-dialog aria-labelledby="delete-dialog-title">
+    <h2 id="delete-dialog-title">{{ ico.icon('trash', 18) }} Delete property?</h2>
+
+    <p class="submission-message">
+        Are you sure you want to delete <strong data-delete-name></strong>?
+        This action cannot be undone.
+    </p>
+
+    <span class="input-group">
+        <button type="button" class="btn-cancel" data-dialog-cancel>Cancel</button>
+        <span class="user-info" aria-hidden="true"></span>
+        <button type="button" class="btn-danger" data-dialog-confirm>Delete property</button>
+    </span>
+</dialog>
+{% endblock %}

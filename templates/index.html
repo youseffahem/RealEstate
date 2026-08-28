@@ -1,7 +1,7 @@
 {% extends "base.html" %}
 {% import "_icons.html" as ico %}
 
-{% block title %}Products · TANTAWY{% endblock %}
+{% block title %}Products · REAL ESTATE{% endblock %}
 
 {# .shell-wide: full width up to 1320px, defined in the appended block of style.css #}
 {% block shell_class %}shell-wide{% endblock %}
@@ -111,7 +111,7 @@
                             class="btn-action-label">Edit</span></a>
 
                     <form action="{{ url_for('delete_product', id=product.id) }}" method="POST" class="inline-form"
-                        data-delete-form data-product-name="{{ product.name }}">
+                        data-delete-form data-item-name="{{ product.name }}">
                         <button type="submit" class="btn-icon btn-action btn-delete"
                             aria-label="Delete {{ product.name }}">{{ ico.icon('trash', 15) }}<span
                                 class="btn-action-label">Delete</span></button>

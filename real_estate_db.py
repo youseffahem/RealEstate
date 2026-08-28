@@ -1,4 +1,4 @@
-"""Real Estate database architecture for the TANTAWY Real Estate Management System.
+"""Real Estate database architecture for the REAL ESTATE Management System.
 
 This module owns the *new* schema only: property_types, locations, agents,
 properties, property_images and inquiries. It does not touch the legacy

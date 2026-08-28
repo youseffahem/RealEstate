@@ -1,5 +1,5 @@
 /* ===================================================================
-   TANTAWY - Product Management
+   REAL ESTATE - Property Management
    -------------------------------------------------------------------
    PART A - Effect system (deep space / aurora / cursor / glass)
    PART B - Dashboard behaviour (toasts, search, delete dialog, preview)
@@ -1168,13 +1168,14 @@
     }
 
 
-
     /* ===============================================================
-       22. TANTAWY GRAVITY FIELD
-       The brand behaves like a small cosmic object. As the cursor
-       enters its field the wordmark and its star icon lean toward it,
-       the existing red glow deepens, and the existing galaxy aura
-       swells and carries its stars with the cursor.
+       22. BRAND GRAVITY FIELD
+       Reproduced exactly from the original wordmark treatment - only
+       the text changed (TANTAWY -> REAL ESTATE). The brand behaves
+       like a small cosmic object. As the cursor enters its field the
+       wordmark and its star icon lean toward it, the existing red glow
+       deepens, and the existing galaxy aura swells and carries its
+       stars with the cursor.
 
        Nothing new is drawn: the whole reaction is three custom
        properties written on .brand-aura, and style.css turns them into
@@ -1423,8 +1424,11 @@
                 lastFocused = document.activeElement;
 
                 if (nameOutput) {
+                    // Generic across both delete forms on the site (product
+                    // rows and property cards) - whichever page rendered the
+                    // form just names what it is deleting.
                     nameOutput.textContent =
-                        '“' + (form.getAttribute('data-product-name') || 'this product') + '”';
+                        '“' + (form.getAttribute('data-item-name') || 'this item') + '”';
                 }
 
                 openDialog();
@@ -1521,25 +1525,35 @@
 
     /* ===== Live preview =========================================== */
 
+    /* Generalised over the field set: the product form only ever wired
+       name/price/description, the property form wires several more
+       (location, property type, listing type, area, bedrooms, bathrooms,
+       status). Every field still just declares [data-preview="key"] on
+       the input/select and [data-preview-out="key"] on the element that
+       should mirror it - same pattern as before, just no longer limited
+       to a fixed list of three keys, so this one function drives both
+       forms instead of a second preview engine being written for
+       properties. "price" and "avatar" keep their special formatting;
+       every other key is a plain live text mirror. */
     function initLivePreview() {
-        var fields = {
-            name: document.querySelector('[data-preview="name"]'),
-            price: document.querySelector('[data-preview="price"]'),
-            description: document.querySelector('[data-preview="description"]')
-        };
-        var outputs = {
-            name: document.querySelector('[data-preview-out="name"]'),
-            price: document.querySelector('[data-preview-out="price"]'),
-            description: document.querySelector('[data-preview-out="description"]'),
-            avatar: document.querySelector('[data-preview-out="avatar"]')
-        };
-
-        if (!fields.name || !outputs.name) {
+        var inputs = document.querySelectorAll('[data-preview]');
+        var outputs = document.querySelectorAll('[data-preview-out]');
+        if (!inputs.length || !outputs.length) {
             return;
         }
 
+        var fields = {};
+        Array.prototype.forEach.call(inputs, function (el) {
+            fields[el.getAttribute('data-preview')] = el;
+        });
+
+        var outs = {};
+        Array.prototype.forEach.call(outputs, function (el) {
+            outs[el.getAttribute('data-preview-out')] = el;
+        });
+
         function formatPrice(raw) {
-            var amount = parseFloat(String(raw).replace(',', '.'));
+            var amount = parseFloat(String(raw || '').replace(',', '.'));
             if (!isFinite(amount)) {
                 return '$0.00';
             }
@@ -1549,26 +1563,43 @@
             });
         }
 
+        // A <select>'s live value is its chosen option's label, not its id.
+        function valueOf(key) {
+            var el = fields[key];
+            if (!el) {
+                return '';
+            }
+            if (el.tagName === 'SELECT') {
+                var chosen = el.options[el.selectedIndex];
+                return chosen ? chosen.textContent.trim() : '';
+            }
+            return el.value.trim();
+        }
+
         function render() {
-            var name = fields.name.value.trim();
+            Object.keys(outs).forEach(function (key) {
+                var out = outs[key];
 
-            outputs.name.textContent = name || 'Product name';
+                if (key === 'avatar') {
+                    var source = valueOf('name') || valueOf('title');
+                    out.textContent = source ? source.slice(0, 2).toUpperCase() : '—';
+                    return;
+                }
+                if (key === 'price') {
+                    out.textContent = formatPrice(valueOf('price'));
+                    return;
+                }
 
-            if (outputs.avatar) {
-                outputs.avatar.textContent = name ? name.slice(0, 2) : '—';
-            }
-            if (outputs.price && fields.price) {
-                outputs.price.textContent = formatPrice(fields.price.value.trim());
-            }
-            if (outputs.description && fields.description) {
-                outputs.description.textContent =
-                    fields.description.value.trim() || 'Your description will appear here.';
-            }
+                var value = valueOf(key);
+                out.textContent = value || out.getAttribute('data-preview-empty') || '';
+            });
         }
 
         Object.keys(fields).forEach(function (key) {
-            if (fields[key]) {
-                fields[key].addEventListener('input', render);
+            var el = fields[key];
+            el.addEventListener('input', render);
+            if (el.tagName === 'SELECT') {
+                el.addEventListener('change', render);
             }
         });
 
