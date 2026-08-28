@@ -289,7 +289,7 @@
     <h2>{{ ico.icon('user') }} Agent Performance <span class="badge" data-count>{{ agent_performance|length }}</span></h2>
 
     {% if agent_performance %}
-    <div class="table-scroll">
+    <div class="table-scroll" tabindex="0" role="region" aria-label="Agent performance table, scrollable">
         <table class="analytics-table">
             <thead>
                 <tr>

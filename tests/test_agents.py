@@ -300,6 +300,18 @@ def test_delete_missing_agent_is_handled_gracefully(client):
     assert followed.status_code == 200
 
 
+def test_get_on_agents_delete_route_is_rejected(client, track_agents):
+    agent_id = insert_agent(name="Get Delete Rejected Agent", email="get.delete.rejected@example.com")
+    track_agents.append(agent_id)
+
+    # Delete is POST only (Phase 8 QA fix): opening it via GET must answer
+    # with a real HTTP 405, landing back on the Agents page - not the 302
+    # to the unrelated legacy product catalog it used to fall through to.
+    response = client.get("/agents/delete/" + str(agent_id))
+    assert response.status_code == 405
+    assert fetch_agent_row(agent_id) is not None
+
+
 def test_deleting_an_agent_does_not_delete_its_properties(client, track_properties):
     agent_id = insert_agent(name="Property Owner Agent", email="property.owner.agent@example.com")
     property_id = insert_property(title="Survives Agent Deletion", agent_id=agent_id)

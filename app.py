@@ -395,6 +395,15 @@ def method_not_allowed(error):
         response = redirect(url_for("inquiries_list"))
         response.status_code = 405
         return response
+    if request.path.startswith("/agents"):
+        # Phase 8 QA fix: GET on the Agents POST-only route (delete) fell
+        # through to the legacy branch below - a real HTTP 302 back to the
+        # unrelated product catalog ("/") instead of a proper 405 back on
+        # the Agents page. Bring it in line with Properties (JSON 405 via
+        # _wants_json()) and Inquiries above: same page, real status code.
+        response = redirect(url_for("agents_list"))
+        response.status_code = 405
+        return response
     return redirect(url_for("index"))
 
 
@@ -1410,4 +1419,11 @@ def inquiries_delete(id):
 
 
 if __name__ == "__main__":
-    app.run(debug=True)
+    # Phase 8 QA fix: debug=True was hardcoded, which would ship Werkzeug's
+    # interactive debugger (raw stack traces, and - reachable on the
+    # network - an unauthenticated code-execution console) to anyone who
+    # ever ran this outside pure local development. Opt-in only, and off
+    # by default, matching "never expose stack traces/internals" from the
+    # security audit. `flask run --debug` remains the usual way to develop
+    # locally with auto-reload; this only changes the `python app.py` path.
+    app.run(debug=os.environ.get("FLASK_DEBUG") == "1")

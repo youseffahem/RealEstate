@@ -2091,8 +2091,12 @@ a.brand-aura {
 }
 
 .form-group input:focus-visible,
+.form-group select:focus-visible,
 .form-group textarea:focus-visible,
 .input-group input:focus-visible,
+.filter-bar select:focus-visible,
+.filter-bar input:focus-visible,
+.image-url-row input:focus-visible,
 [data-search-input]:focus-visible {
     outline: 2px solid rgba(0, 245, 255, 0.6);
     outline-offset: 2px;
