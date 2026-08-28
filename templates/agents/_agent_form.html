@@ -6,7 +6,7 @@
 <section class="card form-card">
     <h2>{{ ico.icon('user') }} Agent details</h2>
 
-    <form id="agent-form" action="{{ form_action }}" method="POST">
+    <form id="agent-form" action="{{ form_action }}" method="POST" enctype="multipart/form-data">
 
         <div class="form-group">
             <label for="name">Full name</label>
@@ -30,6 +30,19 @@
                    value="{{ agent.phone }}" autocomplete="off" required
                    maxlength="30" aria-describedby="phone-hint">
             <span class="field-hint" id="phone-hint">Up to 30 characters.</span>
+        </div>
+
+        <div class="form-group">
+            <label for="photo">Profile photo</label>
+            {% if agent.photo_url %}
+            <div style="margin-bottom: 8px;">
+                <img src="{{ agent.photo_url }}" alt="Current photo" style="max-width: 120px; max-height: 120px; border-radius: var(--radius-sm); object-fit: cover;">
+            </div>
+            {% endif %}
+            <input type="file" name="photo" id="photo"
+                   accept=".jpg,.jpeg,.png,.webp"
+                   aria-describedby="photo-hint">
+            <span class="field-hint" id="photo-hint">JPG, JPEG, PNG or WEBP.{% if agent.photo_url %} Leave empty to keep current photo.{% endif %}</span>
         </div>
 
     </form>

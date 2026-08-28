@@ -11,7 +11,7 @@
     <section class="card form-card">
         <h2>{{ ico.icon('home') }} Property details</h2>
 
-        <form id="property-form" action="{{ form_action }}" method="POST">
+        <form id="property-form" action="{{ form_action }}" method="POST" enctype="multipart/form-data">
 
             <div class="form-group">
                 <label for="title">Property title</label>
@@ -161,6 +161,12 @@
                 <button type="button" class="btn-link-secondary btn-cancel" data-image-add>
                     {{ ico.icon('plus', 14) }} Add image URL</button>
                 <span class="field-hint">Paste a direct http:// or https:// image link. Up to {{ max_images }} images.</span>
+                <div class="image-upload-section">
+                    <label for="image_files" class="field-hint" style="margin-top: 12px; display: block;">Or upload images from your computer:</label>
+                    <input type="file" name="image_files" id="image_files" multiple
+                           accept=".jpg,.jpeg,.png,.webp"
+                           style="margin-top: 6px; width: 100%;">
+                </div>
             </div>
 
         </form>

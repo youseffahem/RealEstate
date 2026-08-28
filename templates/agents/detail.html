@@ -22,6 +22,12 @@
 
     <h2>{{ ico.icon('user') }} {{ agent.name }}</h2>
 
+    {% if agent.photo_url %}
+    <div style="margin-bottom: 16px;">
+        <img src="{{ agent.photo_url }}" alt="{{ agent.name }}" style="max-width: 160px; max-height: 160px; border-radius: var(--radius-sm); object-fit: cover;">
+    </div>
+    {% endif %}
+
     <span class="user-row row-wrap property-badges">
         <span class="badge-pill">{{ agent.property_count }} Assigned</span>
         <span class="badge-pill badge-status-available">{{ agent.available_count }} Available</span>

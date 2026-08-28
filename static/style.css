@@ -4121,3 +4121,108 @@ body {
 [data-theme="light"] .badge-status-contacted {
     color: #b45309;
 }
+
+
+/* ================================================================
+   FILE UPLOAD INPUT STYLING & ADD PROPERTY DIMENSION FIXES
+   ================================================================ */
+
+/* ===== File inputs (property image upload + agent photo upload) =====
+   The native file input renders the browser's own white "Choose File"
+   button, which clashes with this dark/purple UI. Restyle the control to
+   match the other dark fields (same panel background, border, radius as
+   .form-group input) and restyle its button - via the standard
+   ::file-selector-button and the older -webkit- alias it replaces - with
+   the same purple accent gradient already used by .nav-link.active /
+   .btn-submit. Selection/upload behavior is untouched; this is
+   presentation only. `.form-group input[type="file"]` alone reaches both
+   upload sites (agent photo, property image_files) since each one is
+   nested inside a .form-group. */
+.form-group input[type="file"] {
+    width: 100%;
+    padding: 10px 12px;
+    background: rgba(var(--fx-panel-rgb), 0.6);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-sm);
+    color: var(--text-muted);
+    font-family: inherit;
+    font-size: 0.85rem;
+    cursor: pointer;
+    transition: border-color 0.3s ease, background 0.3s ease, box-shadow 0.3s ease;
+}
+
+.form-group input[type="file"]:hover {
+    border-color: var(--accent);
+    background: rgba(var(--fx-panel-hover-rgb), 0.7);
+}
+
+.form-group input[type="file"]:focus {
+    outline: none;
+    border-color: var(--accent);
+    box-shadow: 0 0 0 3px var(--accent-glow);
+}
+
+.form-group input[type="file"]::file-selector-button,
+.form-group input[type="file"]::-webkit-file-upload-button {
+    margin-right: 12px;
+    padding: 8px 16px;
+    background: linear-gradient(135deg, var(--accent), #6366f1);
+    color: #fff;
+    border: none;
+    border-radius: var(--radius-sm);
+    font-family: inherit;
+    font-size: 0.85rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: background 0.3s ease, box-shadow 0.3s ease;
+}
+
+.form-group input[type="file"]:hover::file-selector-button,
+.form-group input[type="file"]:hover::-webkit-file-upload-button {
+    background: linear-gradient(135deg, var(--accent-hover), #818cf8);
+    box-shadow: 0 0 12px var(--accent-glow);
+}
+
+/* ===== Add Property dimensions =====
+   Scoped to .form-grid, which only wraps the property create/edit form -
+   Agents and Inquiries use a single .form-card with no .form-grid, so
+   they're unaffected. Sizing only: no color/radius/shadow/font changes. */
+.form-grid .form-card {
+    padding: 20px 24px;
+}
+
+.form-grid .form-group {
+    margin-bottom: 14px;
+}
+
+.form-grid .form-group input,
+.form-grid .form-group select {
+    padding: 10px 14px;
+}
+
+.form-grid .form-card textarea {
+    min-height: 90px;
+    max-height: 280px;
+    box-sizing: border-box;
+}
+
+/* Property image URL manager: not shared with Agents/Inquiries, so these
+   don't need .form-grid scoping - just kept compact and overflow-safe. */
+.image-manager {
+    max-width: 100%;
+    overflow: hidden;
+}
+
+.image-url-row input {
+    padding: 10px 14px;
+    box-sizing: border-box;
+}
+
+.image-upload-section {
+    max-width: 100%;
+}
+
+.image-upload-section input[type="file"] {
+    max-width: 100%;
+    box-sizing: border-box;
+}

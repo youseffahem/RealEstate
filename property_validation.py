@@ -164,6 +164,11 @@ def validate_image_urls(raw_urls):
             )
             continue
 
+        # Accept locally uploaded files (served at /uploads/...)
+        if url.startswith("/uploads/"):
+            cleaned.append(url)
+            continue
+
         parsed = urlsplit(url)
         if parsed.scheme.lower() not in ALLOWED_IMAGE_URL_SCHEMES:
             errors.append("Image URL must start with http:// or https://.")

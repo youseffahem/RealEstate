@@ -21,7 +21,7 @@ import property_queries
 # one query instead of N+1 follow-up queries per agent.
 _AGENT_BASE_QUERY = """
     SELECT
-        a.id, a.name, a.email, a.phone, a.created_at,
+        a.id, a.name, a.email, a.phone, a.photo_url, a.created_at,
         COUNT(p.id) AS property_count,
         SUM(p.status = 'Available') AS available_count,
         SUM(p.status = 'Reserved') AS reserved_count,
@@ -60,7 +60,7 @@ def get_all_agents(connection, filters=None):
     sql = _AGENT_BASE_QUERY
     if clauses:
         sql += " WHERE " + " AND ".join(clauses)
-    sql += " GROUP BY a.id, a.name, a.email, a.phone, a.created_at ORDER BY a.name"
+    sql += " GROUP BY a.id, a.name, a.email, a.phone, a.photo_url, a.created_at ORDER BY a.name"
 
     cursor = connection.cursor(dictionary=True)
     cursor.execute(sql, params)
@@ -71,7 +71,7 @@ def get_all_agents(connection, filters=None):
 
 def get_agent_by_id(connection, agent_id):
     """One agent, with their property counts, or None."""
-    sql = _AGENT_BASE_QUERY + " WHERE a.id = %s GROUP BY a.id, a.name, a.email, a.phone, a.created_at"
+    sql = _AGENT_BASE_QUERY + " WHERE a.id = %s GROUP BY a.id, a.name, a.email, a.phone, a.photo_url, a.created_at"
     cursor = connection.cursor(dictionary=True)
     cursor.execute(sql, (agent_id,))
     row = cursor.fetchone()
@@ -105,8 +105,8 @@ def create_agent(connection, data):
     """Insert a new agent from a cleaned payload. Returns the new id."""
     cursor = connection.cursor()
     cursor.execute(
-        "INSERT INTO agents (name, email, phone) VALUES (%s, %s, %s)",
-        (data["name"], data["email"], data["phone"]),
+        "INSERT INTO agents (name, email, phone, photo_url) VALUES (%s, %s, %s, %s)",
+        (data["name"], data["email"], data["phone"], data.get("photo_url")),
     )
     connection.commit()
     new_id = cursor.lastrowid
@@ -119,8 +119,8 @@ def update_agent(connection, agent_id, data):
     (0 means the id did not exist)."""
     cursor = connection.cursor()
     cursor.execute(
-        "UPDATE agents SET name = %s, email = %s, phone = %s WHERE id = %s",
-        (data["name"], data["email"], data["phone"], agent_id),
+        "UPDATE agents SET name = %s, email = %s, phone = %s, photo_url = %s WHERE id = %s",
+        (data["name"], data["email"], data["phone"], data.get("photo_url"), agent_id),
     )
     connection.commit()
     updated = cursor.rowcount

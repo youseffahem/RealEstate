@@ -45,6 +45,7 @@ CREATE TABLE IF NOT EXISTS agents (
     name       VARCHAR(120) NOT NULL,
     email      VARCHAR(160) NOT NULL,
     phone      VARCHAR(30)  NOT NULL,
+    photo_url  VARCHAR(500) NULL,
     created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
     CONSTRAINT uq_agents_email UNIQUE (email)
 ) ENGINE=InnoDB
@@ -539,6 +540,16 @@ def init_real_estate(connection):
     """
     cursor = connection.cursor()
     create_schema(cursor)
+
+    # Migration: add photo_url to agents if it doesn't exist yet (safe to
+    # run on every startup - the column check prevents duplicate ALTERs).
+    cursor.execute(
+        "SELECT COUNT(*) FROM information_schema.COLUMNS "
+        "WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME = 'agents' "
+        "AND COLUMN_NAME = 'photo_url'"
+    )
+    if cursor.fetchone()[0] == 0:
+        cursor.execute("ALTER TABLE agents ADD COLUMN photo_url VARCHAR(500) NULL")
 
     summary = {
         "property_types": seed_property_types(cursor),

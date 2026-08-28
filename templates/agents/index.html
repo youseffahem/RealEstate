@@ -76,7 +76,13 @@
     {% for agent in agents %}
     <article class="card property-card agent-card">
 
+        {% if agent.photo_url %}
+        <div class="property-card-media">
+            <img src="{{ agent.photo_url }}" alt="{{ agent.name }}" loading="lazy">
+        </div>
+        {% else %}
         <div class="property-card-media is-empty" aria-hidden="true">{{ ico.icon('user', 22) }}</div>
+        {% endif %}
 
         <h2>{{ ico.icon('user', 16) }} <span title="{{ agent.name }}">{{ agent.name }}</span></h2>
 

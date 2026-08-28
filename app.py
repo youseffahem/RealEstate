@@ -1,10 +1,12 @@
 import datetime
 import decimal
 import os
+import uuid
 
 import mysql.connector
 from dotenv import load_dotenv
-from flask import Flask, flash, jsonify, redirect, render_template, request, url_for
+from flask import Flask, flash, jsonify, redirect, render_template, request, send_from_directory, url_for
+from werkzeug.utils import secure_filename
 
 import agent_queries
 import agent_validation
@@ -20,6 +22,11 @@ load_dotenv()
 
 app = Flask(__name__)
 app.secret_key = os.environ.get("SECRET_KEY", "dev-secret-key")
+
+# --- File uploads ---
+UPLOAD_FOLDER = os.path.join(os.path.dirname(os.path.abspath(__file__)), "static", "uploads")
+ALLOWED_IMAGE_EXTENSIONS = {"jpg", "jpeg", "png", "webp"}
+os.makedirs(UPLOAD_FOLDER, exist_ok=True)
 
 # --- Database settings (read from .env, never written in the code) ---
 DB_HOST = os.environ.get("DB_HOST", "localhost")
@@ -421,11 +428,35 @@ def _property_reference_or_empty():
         return {"property_types": [], "locations": [], "agents": []}
 
 
+def _save_uploaded_file(file_obj):
+    """Save an uploaded image file to static/uploads/ with a UUID filename.
+    Returns the URL path to serve it, or None if the file is invalid."""
+    if not file_obj or not file_obj.filename:
+        return None
+    original = secure_filename(file_obj.filename)
+    if not original:
+        return None
+    ext = original.rsplit(".", 1)[-1].lower() if "." in original else ""
+    if ext not in ALLOWED_IMAGE_EXTENSIONS:
+        return None
+    unique_name = uuid.uuid4().hex + "." + ext
+    file_obj.save(os.path.join(UPLOAD_FOLDER, unique_name))
+    return "/uploads/" + unique_name
+
+
 def get_image_urls_from_form():
     """Every image URL box submitted from the create/edit property form -
     one <input name="image_urls"> per gallery row (see
-    templates/properties/_property_form.html)."""
-    return request.form.getlist("image_urls")
+    templates/properties/_property_form.html).
+    Also processes any uploaded files from <input type="file" name="image_files">."""
+    urls = list(request.form.getlist("image_urls"))
+    # Process uploaded files and append their URLs
+    uploaded_files = request.files.getlist("image_files")
+    for f in uploaded_files:
+        saved_url = _save_uploaded_file(f)
+        if saved_url:
+            urls.append(saved_url)
+    return urls
 
 
 def _render_property_form(template, form_action, submit_label, property_data, image_urls=None):
@@ -618,6 +649,12 @@ def properties_new():
                                   "Create property", _EMPTY_PROPERTY_FORM)
 
 
+# ===== Serve uploaded files =====
+@app.route("/uploads/<path:filename>")
+def uploaded_file(filename):
+    return send_from_directory(UPLOAD_FOLDER, filename)
+
+
 # ===== Edit Property =====
 @app.route("/properties/<int:id>/edit", methods=["GET", "POST"])
 def properties_edit_page(id):
@@ -704,7 +741,7 @@ def properties_delete_page(id):
 # deleting an agent here never deletes a property - it only clears that
 # property's agent_id, and the property keeps working normally.
 
-_EMPTY_AGENT_FORM = {"name": "", "email": "", "phone": ""}
+_EMPTY_AGENT_FORM = {"name": "", "email": "", "phone": "", "photo_url": ""}
 
 
 def get_agent_form_data():
@@ -783,6 +820,10 @@ def agents_add():
     if request.method == "POST":
         data = get_agent_form_data()
 
+        # Handle agent photo upload
+        photo_file = request.files.get("photo")
+        photo_url = _save_uploaded_file(photo_file) if photo_file else None
+
         try:
             connection = get_connection()
         except mysql.connector.Error as error:
@@ -798,6 +839,7 @@ def agents_add():
                     flash(error, "error")
                 return _render_agent_form("agents/add.html", url_for("agents_add"), "Create agent", data)
 
+            cleaned["photo_url"] = photo_url
             new_id = agent_queries.create_agent(connection, cleaned)
         except mysql.connector.Error as error:
             app.logger.error("Database error while creating an agent: %s", error)
@@ -830,19 +872,28 @@ def agents_edit(id):
 
     if request.method == "POST":
         data = get_agent_form_data()
+
+        # Handle agent photo upload
+        photo_file = request.files.get("photo")
+        photo_url = _save_uploaded_file(photo_file) if photo_file else None
+
         try:
             existing_emails = agent_queries.get_all_agent_emails(connection, exclude_id=id)
             errors, cleaned = agent_validation.validate_agent_payload(data, existing_emails)
             if errors:
                 for error in errors:
                     flash(error, "error")
+                data["photo_url"] = existing.get("photo_url", "")
                 return _render_agent_form("agents/edit.html", url_for("agents_edit", id=id),
                                            "Save changes", data)
 
+            # Keep existing photo if no new one uploaded
+            cleaned["photo_url"] = photo_url if photo_url else existing.get("photo_url")
             agent_queries.update_agent(connection, id, cleaned)
         except mysql.connector.Error as error:
             app.logger.error("Database error while updating agent %s: %s", id, error)
             flash("Could not update the agent. Please try again later.", "error")
+            data["photo_url"] = existing.get("photo_url", "")
             return _render_agent_form("agents/edit.html", url_for("agents_edit", id=id),
                                        "Save changes", data)
         finally:
