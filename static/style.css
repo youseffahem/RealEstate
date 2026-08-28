@@ -1,0 +1,3067 @@
+/* ===== Reset & Base ===== */
+*,
+*::before,
+*::after {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+:root {
+    --bg: #0a0a14;
+    --surface: #141428;
+    --surface-hover: #1e1e3a;
+    --border: rgba(255, 255, 255, 0.06);
+    --text: #e8e8f0;
+    --text-muted: #8888a8;
+    --accent: #7c5cfc;
+    --accent-hover: #9478ff;
+    --accent-glow: rgba(124, 92, 252, 0.25);
+    --success: #34d399;
+    --success-bg: rgba(52, 211, 153, 0.1);
+    --error: #f87171;
+    --error-bg: rgba(248, 113, 113, 0.1);
+    --radius: 14px;
+    --radius-sm: 10px;
+    --neon-cyan: #00f5ff;
+    --neon-pink: #ff00aa;
+    --neon-purple: #b14eff;
+    --aurora-1: rgba(124, 92, 252, 0.15);
+    --aurora-2: rgba(0, 245, 255, 0.1);
+    --aurora-3: rgba(255, 0, 170, 0.08);
+}
+
+/* ===== Aurora Animated Background ===== */
+body {
+    font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    min-height: 100vh;
+    display: flex;
+    justify-content: center;
+    padding: 60px 20px;
+    overflow-x: hidden;
+    position: relative;
+    background-image:
+        radial-gradient(ellipse 600px 400px at 50% 0%, rgba(124, 92, 252, 0.08), transparent),
+        radial-gradient(ellipse 400px 300px at 80% 100%, rgba(99, 102, 241, 0.05), transparent);
+}
+
+body::before {
+    content: '';
+    position: fixed;
+    top: -50%;
+    left: -50%;
+    width: 200%;
+    height: 200%;
+    background:
+        radial-gradient(ellipse 40% 30% at 20% 50%, var(--aurora-1), transparent),
+        radial-gradient(ellipse 35% 25% at 70% 30%, var(--aurora-2), transparent),
+        radial-gradient(ellipse 30% 35% at 50% 70%, var(--aurora-3), transparent);
+    animation: auroraShift 20s ease-in-out infinite alternate;
+    pointer-events: none;
+    z-index: 0;
+}
+
+@keyframes auroraShift {
+    0% { transform: translate(0, 0) rotate(0deg); }
+    25% { transform: translate(5%, -3%) rotate(3deg); }
+    50% { transform: translate(-3%, 5%) rotate(-2deg); }
+    75% { transform: translate(3%, 2%) rotate(4deg); }
+    100% { transform: translate(-5%, -5%) rotate(-3deg); }
+}
+
+/* ===== Floating Particle Canvas Overlay ===== */
+body::after {
+    content: '';
+    position: fixed;
+    inset: 0;
+    background-image:
+        radial-gradient(1.5px 1.5px at 10% 20%, rgba(124, 92, 252, 0.5), transparent),
+        radial-gradient(1px 1px at 30% 70%, rgba(0, 245, 255, 0.4), transparent),
+        radial-gradient(2px 2px at 50% 10%, rgba(255, 0, 170, 0.3), transparent),
+        radial-gradient(1px 1px at 70% 50%, rgba(124, 92, 252, 0.4), transparent),
+        radial-gradient(1.5px 1.5px at 90% 80%, rgba(0, 245, 255, 0.5), transparent),
+        radial-gradient(1px 1px at 15% 90%, rgba(255, 0, 170, 0.3), transparent),
+        radial-gradient(2px 2px at 85% 15%, rgba(124, 92, 252, 0.3), transparent),
+        radial-gradient(1px 1px at 45% 45%, rgba(0, 245, 255, 0.3), transparent),
+        radial-gradient(1.5px 1.5px at 60% 85%, rgba(255, 0, 170, 0.4), transparent),
+        radial-gradient(1px 1px at 25% 35%, rgba(124, 92, 252, 0.5), transparent);
+    animation: particleDrift 30s linear infinite;
+    pointer-events: none;
+    z-index: 0;
+    opacity: 0.6;
+}
+
+@keyframes particleDrift {
+    0% { transform: translateY(0); }
+    100% { transform: translateY(-100px); }
+}
+
+/* ===== Layout ===== */
+.container {
+    width: 100%;
+    max-width: 520px;
+    position: relative;
+    z-index: 1;
+    animation: pageEnter 0.8s cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+
+@keyframes pageEnter {
+    from {
+        opacity: 0;
+        transform: translateY(40px) scale(0.96);
+        filter: blur(8px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0) scale(1);
+        filter: blur(0);
+    }
+}
+
+/* ===== Heading with Gradient Text Shimmer ===== */
+h1 {
+    font-size: 2rem;
+    font-weight: 700;
+    letter-spacing: -0.02em;
+    margin-bottom: 6px;
+    background: linear-gradient(90deg, #fff, #a5a5d4, var(--neon-cyan), #fff, #a5a5d4);
+    background-size: 300% 100%;
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+    animation: textShimmer 4s ease-in-out infinite, headingFloat 6s ease-in-out infinite;
+}
+
+@keyframes textShimmer {
+    0% { background-position: 0% 50%; }
+    50% { background-position: 100% 50%; }
+    100% { background-position: 0% 50%; }
+}
+
+@keyframes headingFloat {
+    0%, 100% { transform: translateY(0); }
+    50% { transform: translateY(-3px); }
+}
+
+/* ===== Subtitle with Typing Effect ===== */
+.subtitle {
+    color: var(--text-muted);
+    font-size: 0.95rem;
+    margin-bottom: 32px;
+    animation: subtitleReveal 1s 0.3s cubic-bezier(0.16, 1, 0.3, 1) both;
+    position: relative;
+    overflow: hidden;
+}
+
+@keyframes subtitleReveal {
+    from {
+        opacity: 0;
+        transform: translateX(-20px);
+        clip-path: inset(0 100% 0 0);
+    }
+    to {
+        opacity: 1;
+        transform: translateX(0);
+        clip-path: inset(0 0 0 0);
+    }
+}
+
+/* ===== Flash Messages - Bounce In ===== */
+.flash {
+    padding: 12px 16px;
+    border-radius: var(--radius-sm);
+    font-size: 0.875rem;
+    font-weight: 500;
+    margin-bottom: 16px;
+    animation: flashBounce 0.6s cubic-bezier(0.68, -0.55, 0.27, 1.55) both;
+    position: relative;
+    overflow: hidden;
+}
+
+.flash::after {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: -100%;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.1), transparent);
+    animation: flashSweep 2s 0.6s ease-in-out;
+}
+
+@keyframes flashBounce {
+    0% { opacity: 0; transform: translateY(-30px) scale(0.9); }
+    50% { transform: translateY(6px) scale(1.02); }
+    70% { transform: translateY(-3px) scale(0.99); }
+    100% { opacity: 1; transform: translateY(0) scale(1); }
+}
+
+@keyframes flashSweep {
+    0% { left: -100%; }
+    100% { left: 100%; }
+}
+
+.flash-success {
+    background: var(--success-bg);
+    color: var(--success);
+    border: 1px solid rgba(52, 211, 153, 0.2);
+}
+
+.flash-error {
+    background: var(--error-bg);
+    color: var(--error);
+    border: 1px solid rgba(248, 113, 113, 0.2);
+}
+
+/* ===== Cards - Glassmorphism + 3D Tilt ===== */
+.card {
+    background: linear-gradient(135deg, rgba(20, 20, 40, 0.8), rgba(30, 30, 58, 0.6));
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 24px;
+    margin-bottom: 20px;
+    transition: transform 0.4s cubic-bezier(0.16, 1, 0.3, 1),
+                border-color 0.3s ease,
+                box-shadow 0.4s ease;
+    animation: cardSlideUp 0.7s cubic-bezier(0.16, 1, 0.3, 1) both;
+    position: relative;
+    overflow: hidden;
+}
+
+.card:nth-child(odd) {
+    animation-delay: 0.1s;
+}
+
+.card:nth-child(even) {
+    animation-delay: 0.25s;
+}
+
+@keyframes cardSlideUp {
+    from {
+        opacity: 0;
+        transform: translateY(50px) rotateX(10deg);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0) rotateX(0);
+    }
+}
+
+/* Card hover: lift + glow border */
+.card:hover {
+    border-color: rgba(124, 92, 252, 0.3);
+    transform: translateY(-4px);
+    box-shadow:
+        0 20px 50px rgba(0, 0, 0, 0.3),
+        0 0 30px var(--accent-glow),
+        inset 0 1px 0 rgba(255, 255, 255, 0.05);
+}
+
+/* Animated gradient border on hover */
+.card::before {
+    content: '';
+    position: absolute;
+    inset: -1px;
+    border-radius: var(--radius);
+    padding: 1px;
+    background: linear-gradient(135deg, var(--accent), var(--neon-cyan), var(--neon-pink), var(--accent));
+    background-size: 400% 400%;
+    -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+    -webkit-mask-composite: xor;
+    mask-composite: exclude;
+    opacity: 0;
+    transition: opacity 0.4s ease;
+    animation: borderRotate 4s linear infinite;
+    pointer-events: none;
+}
+
+.card:hover::before {
+    opacity: 1;
+}
+
+@keyframes borderRotate {
+    0% { background-position: 0% 50%; }
+    50% { background-position: 100% 50%; }
+    100% { background-position: 0% 50%; }
+}
+
+/* Sparkle shimmer effect across card */
+.card::after {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: -150%;
+    width: 50%;
+    height: 100%;
+    background: linear-gradient(
+        90deg,
+        transparent,
+        rgba(255, 255, 255, 0.03),
+        rgba(255, 255, 255, 0.06),
+        rgba(255, 255, 255, 0.03),
+        transparent
+    );
+    transform: skewX(-20deg);
+    transition: none;
+    animation: cardShimmer 6s 1s ease-in-out infinite;
+    pointer-events: none;
+}
+
+@keyframes cardShimmer {
+    0%, 100% { left: -150%; }
+    50% { left: 150%; }
+}
+
+.card h2 {
+    font-size: 1rem;
+    font-weight: 600;
+    margin-bottom: 18px;
+    color: var(--text);
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    animation: h2FadeSlide 0.5s 0.4s ease both;
+}
+
+@keyframes h2FadeSlide {
+    from { opacity: 0; transform: translateX(-10px); }
+    to { opacity: 1; transform: translateX(0); }
+}
+
+/* ===== Badge - Pulse Glow ===== */
+.badge {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    background: var(--accent-glow);
+    color: var(--accent-hover);
+    font-size: 0.75rem;
+    font-weight: 600;
+    min-width: 24px;
+    height: 24px;
+    padding: 0 8px;
+    border-radius: 100px;
+    animation: badgePulse 2s ease-in-out infinite;
+    position: relative;
+}
+
+.badge::before {
+    content: '';
+    position: absolute;
+    inset: -3px;
+    border-radius: 100px;
+    background: var(--accent-glow);
+    animation: badgeRing 2s ease-in-out infinite;
+    z-index: -1;
+}
+
+@keyframes badgePulse {
+    0%, 100% { transform: scale(1); }
+    50% { transform: scale(1.1); }
+}
+
+@keyframes badgeRing {
+    0%, 100% { transform: scale(1); opacity: 0.4; }
+    50% { transform: scale(1.5); opacity: 0; }
+}
+
+/* ===== Form Inputs - Focus Animations ===== */
+.input-group {
+    display: flex;
+    gap: 10px;
+}
+
+.input-group input {
+    flex: 1;
+    padding: 12px 16px;
+    background: rgba(10, 10, 20, 0.6);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-sm);
+    color: var(--text);
+    font-family: inherit;
+    font-size: 0.9rem;
+    outline: none;
+    transition: border-color 0.3s ease,
+                box-shadow 0.3s ease,
+                background 0.3s ease,
+                transform 0.2s ease;
+}
+
+.input-group input::placeholder {
+    color: var(--text-muted);
+    transition: opacity 0.3s ease, transform 0.3s ease;
+}
+
+.input-group input:focus::placeholder {
+    opacity: 0;
+    transform: translateX(10px);
+}
+
+.input-group input:focus {
+    border-color: var(--accent);
+    box-shadow: 0 0 0 3px var(--accent-glow), 0 0 20px rgba(124, 92, 252, 0.15);
+    background: rgba(15, 15, 26, 0.8);
+    transform: scale(1.01);
+}
+
+/* ===== Buttons - Ripple + Hover Glow ===== */
+.input-group button {
+    padding: 12px 24px;
+    background: linear-gradient(135deg, var(--accent), #6366f1);
+    color: #fff;
+    border: none;
+    border-radius: var(--radius-sm);
+    font-family: inherit;
+    font-size: 0.9rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+    white-space: nowrap;
+    position: relative;
+    overflow: hidden;
+    background-size: 200% 200%;
+    animation: buttonGradient 3s ease infinite;
+}
+
+@keyframes buttonGradient {
+    0% { background-position: 0% 50%; }
+    50% { background-position: 100% 50%; }
+    100% { background-position: 0% 50%; }
+}
+
+.input-group button::before {
+    content: '';
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    width: 0;
+    height: 0;
+    border-radius: 50%;
+    background: rgba(255, 255, 255, 0.3);
+    transform: translate(-50%, -50%);
+    transition: width 0.6s ease, height 0.6s ease, opacity 0.6s ease;
+    opacity: 0;
+}
+
+.input-group button:hover::before {
+    width: 300px;
+    height: 300px;
+    opacity: 0;
+    animation: rippleOut 0.6s ease-out;
+}
+
+@keyframes rippleOut {
+    0% { width: 0; height: 0; opacity: 0.4; }
+    100% { width: 300px; height: 300px; opacity: 0; }
+}
+
+.input-group button:hover {
+    background: linear-gradient(135deg, var(--accent-hover), #818cf8);
+    box-shadow: 0 4px 25px var(--accent-glow), 0 0 40px rgba(124, 92, 252, 0.2);
+    transform: translateY(-2px);
+}
+
+.input-group button:active {
+    transform: scale(0.95) translateY(0);
+    transition: transform 0.1s ease;
+}
+
+/* ===== User List - Staggered Entry ===== */
+.user-list {
+    list-style: none;
+}
+
+.user-item {
+    padding: 10px 0;
+    border-bottom: 1px solid var(--border);
+    animation: userSlideIn 0.5s cubic-bezier(0.16, 1, 0.3, 1) both;
+    transition: background 0.3s ease, transform 0.3s ease;
+}
+
+/* Stagger delay for each item */
+.user-item:nth-child(1) { animation-delay: 0.05s; }
+.user-item:nth-child(2) { animation-delay: 0.1s; }
+.user-item:nth-child(3) { animation-delay: 0.15s; }
+.user-item:nth-child(4) { animation-delay: 0.2s; }
+.user-item:nth-child(5) { animation-delay: 0.25s; }
+.user-item:nth-child(6) { animation-delay: 0.3s; }
+.user-item:nth-child(7) { animation-delay: 0.35s; }
+.user-item:nth-child(8) { animation-delay: 0.4s; }
+.user-item:nth-child(9) { animation-delay: 0.45s; }
+.user-item:nth-child(10) { animation-delay: 0.5s; }
+
+@keyframes userSlideIn {
+    from {
+        opacity: 0;
+        transform: translateX(-30px) scale(0.95);
+        filter: blur(4px);
+    }
+    to {
+        opacity: 1;
+        transform: translateX(0) scale(1);
+        filter: blur(0);
+    }
+}
+
+.user-item:hover {
+    background: rgba(124, 92, 252, 0.04);
+    transform: translateX(4px);
+}
+
+.user-item:last-child {
+    border-bottom: none;
+    padding-bottom: 0;
+}
+
+.user-item:first-child {
+    padding-top: 0;
+}
+
+.user-row {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+}
+
+/* ===== User Avatar - Animated Gradient Ring ===== */
+.user-avatar {
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, var(--accent), var(--neon-cyan), var(--neon-pink));
+    background-size: 200% 200%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: 700;
+    font-size: 0.95rem;
+    color: #fff;
+    flex-shrink: 0;
+    text-transform: uppercase;
+    animation: avatarGradient 3s ease-in-out infinite;
+    transition: transform 0.3s cubic-bezier(0.16, 1, 0.3, 1), box-shadow 0.3s ease;
+    position: relative;
+}
+
+@keyframes avatarGradient {
+    0% { background-position: 0% 50%; }
+    50% { background-position: 100% 50%; }
+    100% { background-position: 0% 50%; }
+}
+
+.user-item:hover .user-avatar {
+    transform: scale(1.15) rotate(5deg);
+    box-shadow: 0 0 20px var(--accent-glow), 0 0 40px rgba(0, 245, 255, 0.15);
+}
+
+.user-info {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+    min-width: 0;
+    flex: 1;
+}
+
+.user-name {
+    font-weight: 600;
+    font-size: 0.925rem;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    transition: color 0.3s ease, text-shadow 0.3s ease;
+}
+
+.user-item:hover .user-name {
+    color: var(--accent-hover);
+    text-shadow: 0 0 10px var(--accent-glow);
+}
+
+.user-date {
+    font-size: 0.78rem;
+    color: var(--text-muted);
+}
+
+/* ===== Action Buttons - Slide In ===== */
+.user-actions {
+    display: flex;
+    gap: 6px;
+    flex-shrink: 0;
+    opacity: 0;
+    transform: translateX(10px);
+    transition: opacity 0.3s ease, transform 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.user-row:hover .user-actions {
+    opacity: 1;
+    transform: translateX(0);
+}
+
+.inline-form {
+    display: inline;
+}
+
+.btn-icon {
+    width: 34px;
+    height: 34px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    background: transparent;
+    color: var(--text-muted);
+    cursor: pointer;
+    transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+    position: relative;
+    overflow: hidden;
+}
+
+.btn-icon::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    border-radius: 8px;
+    opacity: 0;
+    transition: opacity 0.3s ease;
+}
+
+.btn-icon:hover {
+    border-color: rgba(255, 255, 255, 0.15);
+    transform: scale(1.1);
+}
+
+.btn-icon:active {
+    transform: scale(0.9);
+    transition: transform 0.1s;
+}
+
+.btn-edit:hover {
+    color: var(--accent-hover);
+    background: var(--accent-glow);
+    border-color: rgba(124, 92, 252, 0.3);
+    box-shadow: 0 0 15px var(--accent-glow);
+    animation: editWiggle 0.5s ease;
+}
+
+@keyframes editWiggle {
+    0%, 100% { transform: scale(1.1) rotate(0deg); }
+    25% { transform: scale(1.1) rotate(-8deg); }
+    75% { transform: scale(1.1) rotate(8deg); }
+}
+
+.btn-delete:hover {
+    color: var(--error);
+    background: var(--error-bg);
+    border-color: rgba(248, 113, 113, 0.3);
+    box-shadow: 0 0 15px rgba(248, 113, 113, 0.2);
+    animation: deleteShake 0.4s ease;
+}
+
+@keyframes deleteShake {
+    0%, 100% { transform: scale(1.1) translateX(0); }
+    20% { transform: scale(1.1) translateX(-3px); }
+    40% { transform: scale(1.1) translateX(3px); }
+    60% { transform: scale(1.1) translateX(-2px); }
+    80% { transform: scale(1.1) translateX(2px); }
+}
+
+/* ===== Edit Row ===== */
+.edit-row {
+    align-items: center;
+    gap: 10px;
+    animation: editExpand 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+@keyframes editExpand {
+    from {
+        opacity: 0;
+        transform: scaleY(0.8);
+        transform-origin: top;
+    }
+    to {
+        opacity: 1;
+        transform: scaleY(1);
+    }
+}
+
+.edit-form {
+    width: 100%;
+}
+
+.edit-form .input-group {
+    display: flex;
+    gap: 8px;
+}
+
+.edit-form .input-group input {
+    flex: 1;
+    padding: 10px 14px;
+    font-size: 0.85rem;
+}
+
+.btn-save {
+    padding: 10px 18px !important;
+    background: linear-gradient(135deg, var(--success), #2ec48b) !important;
+    font-size: 0.82rem !important;
+    position: relative;
+    overflow: hidden;
+}
+
+.btn-save::after {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: -100%;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent);
+    animation: saveShine 2s ease-in-out infinite;
+}
+
+@keyframes saveShine {
+    0% { left: -100%; }
+    50%, 100% { left: 100%; }
+}
+
+.btn-save:hover {
+    background: #2ec48b !important;
+    box-shadow: 0 4px 20px rgba(52, 211, 153, 0.3), 0 0 30px rgba(52, 211, 153, 0.15) !important;
+    transform: translateY(-1px);
+}
+
+.btn-cancel {
+    padding: 10px 18px !important;
+    background: transparent !important;
+    border: 1px solid var(--border) !important;
+    color: var(--text-muted) !important;
+    font-size: 0.82rem !important;
+}
+
+.btn-cancel:hover {
+    background: var(--surface-hover) !important;
+    border-color: rgba(255, 255, 255, 0.12) !important;
+    color: var(--text) !important;
+    box-shadow: none !important;
+    transform: translateY(-1px);
+}
+
+/* ===== Navigation Bar - Neon Tab Animation ===== */
+.nav-bar {
+    display: flex;
+    gap: 6px;
+    margin-bottom: 28px;
+    background: linear-gradient(135deg, rgba(20, 20, 40, 0.8), rgba(30, 30, 58, 0.6));
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-sm);
+    padding: 5px;
+    animation: navDrop 0.5s cubic-bezier(0.16, 1, 0.3, 1) both;
+    position: relative;
+}
+
+@keyframes navDrop {
+    from {
+        opacity: 0;
+        transform: translateY(-20px) scale(0.95);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0) scale(1);
+    }
+}
+
+.nav-link {
+    flex: 1;
+    text-align: center;
+    padding: 10px 16px;
+    font-size: 0.875rem;
+    font-weight: 600;
+    color: var(--text-muted);
+    text-decoration: none;
+    border-radius: 8px;
+    transition: all 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+    position: relative;
+    overflow: hidden;
+}
+
+.nav-link::before {
+    content: '';
+    position: absolute;
+    bottom: 0;
+    left: 50%;
+    width: 0;
+    height: 2px;
+    background: var(--accent);
+    transition: width 0.3s ease, left 0.3s ease;
+}
+
+.nav-link:hover::before {
+    width: 60%;
+    left: 20%;
+}
+
+.nav-link:hover {
+    color: var(--text);
+    background: var(--surface-hover);
+    transform: translateY(-1px);
+}
+
+.nav-link.active {
+    color: #fff;
+    background: linear-gradient(135deg, var(--accent), #6366f1);
+    box-shadow: 0 2px 20px var(--accent-glow), 0 0 40px rgba(124, 92, 252, 0.15);
+    animation: activeNavPulse 3s ease-in-out infinite;
+}
+
+@keyframes activeNavPulse {
+    0%, 100% { box-shadow: 0 2px 20px var(--accent-glow), 0 0 40px rgba(124, 92, 252, 0.15); }
+    50% { box-shadow: 0 2px 30px var(--accent-glow), 0 0 60px rgba(124, 92, 252, 0.25); }
+}
+
+.nav-link.active::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    border-radius: 8px;
+    background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.1), transparent);
+    animation: navShine 3s ease-in-out infinite;
+}
+
+@keyframes navShine {
+    0%, 100% { transform: translateX(-100%); }
+    50% { transform: translateX(100%); }
+}
+
+/* ===== Stacked Form ===== */
+.form-group {
+    margin-bottom: 16px;
+    animation: formGroupFade 0.5s ease both;
+}
+
+.form-group:nth-child(1) { animation-delay: 0.1s; }
+.form-group:nth-child(2) { animation-delay: 0.2s; }
+.form-group:nth-child(3) { animation-delay: 0.3s; }
+
+@keyframes formGroupFade {
+    from {
+        opacity: 0;
+        transform: translateY(15px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+.form-group label {
+    display: block;
+    font-size: 0.82rem;
+    font-weight: 600;
+    color: var(--text-muted);
+    margin-bottom: 6px;
+    letter-spacing: 0.02em;
+    text-transform: uppercase;
+    transition: color 0.3s ease, transform 0.3s ease;
+}
+
+.form-group:focus-within label {
+    color: var(--accent-hover);
+    transform: translateX(2px);
+}
+
+.form-group input,
+.form-group textarea {
+    width: 100%;
+    padding: 12px 16px;
+    background: rgba(10, 10, 20, 0.6);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-sm);
+    color: var(--text);
+    font-family: inherit;
+    font-size: 0.9rem;
+    outline: none;
+    transition: border-color 0.3s ease,
+                box-shadow 0.3s ease,
+                background 0.3s ease,
+                transform 0.2s ease;
+}
+
+.form-group input::placeholder,
+.form-group textarea::placeholder {
+    color: var(--text-muted);
+    transition: opacity 0.3s ease, transform 0.3s ease;
+}
+
+.form-group input:focus::placeholder,
+.form-group textarea:focus::placeholder {
+    opacity: 0;
+    transform: translateX(10px);
+}
+
+.form-group input:focus,
+.form-group textarea:focus {
+    border-color: var(--accent);
+    box-shadow: 0 0 0 3px var(--accent-glow), 0 0 20px rgba(124, 92, 252, 0.15);
+    background: rgba(15, 15, 26, 0.8);
+    transform: scale(1.01);
+}
+
+.form-group textarea {
+    resize: vertical;
+    min-height: 100px;
+}
+
+/* ===== Submit Button - Full Width Animated ===== */
+.btn-submit {
+    width: 100%;
+    padding: 13px 24px;
+    background: linear-gradient(135deg, var(--accent), #6366f1, var(--neon-purple));
+    background-size: 200% 200%;
+    color: #fff;
+    border: none;
+    border-radius: var(--radius-sm);
+    font-family: inherit;
+    font-size: 0.9rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+    margin-top: 4px;
+    position: relative;
+    overflow: hidden;
+    animation: submitGradient 4s ease infinite;
+}
+
+@keyframes submitGradient {
+    0% { background-position: 0% 50%; }
+    50% { background-position: 100% 50%; }
+    100% { background-position: 0% 50%; }
+}
+
+.btn-submit::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: -100%;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.15), transparent);
+    transition: none;
+    animation: submitShine 3s ease-in-out infinite;
+}
+
+@keyframes submitShine {
+    0%, 100% { left: -100%; }
+    50% { left: 100%; }
+}
+
+.btn-submit:hover {
+    background-size: 200% 200%;
+    box-shadow: 0 4px 30px var(--accent-glow), 0 0 50px rgba(124, 92, 252, 0.2);
+    transform: translateY(-3px) scale(1.01);
+}
+
+.btn-submit:active {
+    transform: scale(0.97);
+    transition: transform 0.1s;
+}
+
+/* ===== Submission Message - Fade Reveal ===== */
+.submission-message {
+    margin-top: 10px;
+    padding: 10px 14px;
+    background: rgba(10, 10, 20, 0.4);
+    border-radius: 8px;
+    font-size: 0.85rem;
+    color: var(--text-muted);
+    line-height: 1.55;
+    border: 1px solid var(--border);
+    animation: messageFade 0.6s ease both;
+    transition: border-color 0.3s ease, background 0.3s ease;
+}
+
+@keyframes messageFade {
+    from {
+        opacity: 0;
+        transform: translateY(10px);
+        max-height: 0;
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+        max-height: 500px;
+    }
+}
+
+.submission-message:hover {
+    border-color: rgba(124, 92, 252, 0.2);
+    background: rgba(15, 15, 30, 0.5);
+}
+
+/* ===== Scrollbar Styling ===== */
+::-webkit-scrollbar {
+    width: 6px;
+}
+
+::-webkit-scrollbar-track {
+    background: var(--bg);
+}
+
+::-webkit-scrollbar-thumb {
+    background: rgba(124, 92, 252, 0.3);
+    border-radius: 3px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+    background: rgba(124, 92, 252, 0.5);
+}
+
+/* ===== Selection Color ===== */
+::selection {
+    background: rgba(124, 92, 252, 0.3);
+    color: #fff;
+}
+
+/* ===== Responsive ===== */
+@media (max-width: 480px) {
+    body {
+        padding: 32px 16px;
+    }
+
+    h1 {
+        font-size: 1.6rem;
+    }
+
+    .card {
+        padding: 18px;
+    }
+
+    .name-form .input-group {
+        flex-direction: column;
+    }
+
+    .name-form .input-group button {
+        width: 100%;
+    }
+
+    /* Always show action buttons on mobile (no hover) */
+    .user-actions {
+        opacity: 1;
+        transform: translateX(0);
+    }
+
+    .btn-submit {
+        width: 100%;
+    }
+}
+
+/* ===== Extra Animations Library ===== */
+
+/* Wobble on general hover for interactive elements */
+@keyframes wobble {
+    0% { transform: translateX(0); }
+    15% { transform: translateX(-6px) rotate(-3deg); }
+    30% { transform: translateX(5px) rotate(2deg); }
+    45% { transform: translateX(-4px) rotate(-2deg); }
+    60% { transform: translateX(3px) rotate(1deg); }
+    75% { transform: translateX(-2px) rotate(-0.5deg); }
+    100% { transform: translateX(0) rotate(0); }
+}
+
+/* Jello squish */
+@keyframes jello {
+    0%, 100% { transform: scale3d(1, 1, 1); }
+    30% { transform: scale3d(1.25, 0.75, 1); }
+    40% { transform: scale3d(0.75, 1.25, 1); }
+    50% { transform: scale3d(1.15, 0.85, 1); }
+    65% { transform: scale3d(0.95, 1.05, 1); }
+    75% { transform: scale3d(1.05, 0.95, 1); }
+}
+
+/* Heartbeat */
+@keyframes heartbeat {
+    0%, 100% { transform: scale(1); }
+    14% { transform: scale(1.15); }
+    28% { transform: scale(1); }
+    42% { transform: scale(1.15); }
+    70% { transform: scale(1); }
+}
+
+/* Rubber band on focus */
+@keyframes rubberBand {
+    0% { transform: scale3d(1, 1, 1); }
+    30% { transform: scale3d(1.15, 0.85, 1); }
+    40% { transform: scale3d(0.85, 1.15, 1); }
+    50% { transform: scale3d(1.1, 0.9, 1); }
+    65% { transform: scale3d(0.98, 1.02, 1); }
+    75% { transform: scale3d(1.03, 0.97, 1); }
+    100% { transform: scale3d(1, 1, 1); }
+}
+
+/* Swing */
+@keyframes swing {
+    20% { transform: rotate3d(0, 0, 1, 12deg); }
+    40% { transform: rotate3d(0, 0, 1, -8deg); }
+    60% { transform: rotate3d(0, 0, 1, 4deg); }
+    80% { transform: rotate3d(0, 0, 1, -4deg); }
+    100% { transform: rotate3d(0, 0, 1, 0deg); }
+}
+
+/* Tada */
+@keyframes tada {
+    0% { transform: scale3d(1, 1, 1); }
+    10%, 20% { transform: scale3d(0.9, 0.9, 0.9) rotate3d(0, 0, 1, -3deg); }
+    30%, 50%, 70%, 90% { transform: scale3d(1.1, 1.1, 1.1) rotate3d(0, 0, 1, 3deg); }
+    40%, 60%, 80% { transform: scale3d(1.1, 1.1, 1.1) rotate3d(0, 0, 1, -3deg); }
+    100% { transform: scale3d(1, 1, 1); }
+}
+
+/* Flip */
+@keyframes flipInX {
+    0% { transform: perspective(400px) rotateX(90deg); opacity: 0; }
+    40% { transform: perspective(400px) rotateX(-10deg); }
+    70% { transform: perspective(400px) rotateX(10deg); }
+    100% { transform: perspective(400px) rotateX(0deg); opacity: 1; }
+}
+
+/* Zoom bounce in */
+@keyframes zoomBounceIn {
+    0% { transform: scale(0); opacity: 0; }
+    50% { transform: scale(1.1); }
+    70% { transform: scale(0.95); }
+    100% { transform: scale(1); opacity: 1; }
+}
+
+/* Rotate in */
+@keyframes rotateIn {
+    0% { transform: rotate(-200deg); opacity: 0; }
+    100% { transform: rotate(0deg); opacity: 1; }
+}
+
+/* Glitch */
+@keyframes glitch {
+    0%, 100% { transform: translate(0); text-shadow: none; }
+    2% { transform: translate(2px, 1px); text-shadow: -2px 0 #ff00aa, 2px 0 #00f5ff; }
+    4% { transform: translate(-2px, -1px); text-shadow: 2px 0 #ff00aa, -2px 0 #00f5ff; }
+    6% { transform: translate(0); text-shadow: none; }
+}
+
+/* Apply glitch to h1 on hover */
+h1:hover {
+    animation: textShimmer 4s ease-in-out infinite, glitch 3s ease-in-out infinite;
+}
+
+/* Float up animation for user avatars stagger */
+@keyframes floatUp {
+    0%, 100% { transform: translateY(0); }
+    50% { transform: translateY(-4px); }
+}
+
+.user-avatar {
+    animation: avatarGradient 3s ease-in-out infinite, floatUp 4s ease-in-out infinite;
+}
+
+.user-item:nth-child(odd) .user-avatar { animation-delay: 0s, 0s; }
+.user-item:nth-child(even) .user-avatar { animation-delay: 0s, 2s; }
+
+/* Focus ring animation */
+@keyframes focusRing {
+    0% { box-shadow: 0 0 0 3px var(--accent-glow); }
+    50% { box-shadow: 0 0 0 6px rgba(124, 92, 252, 0.1); }
+    100% { box-shadow: 0 0 0 3px var(--accent-glow); }
+}
+
+.input-group input:focus,
+.form-group input:focus,
+.form-group textarea:focus {
+    animation: focusRing 2s ease-in-out infinite;
+}
+
+/* Smooth page transitions for links */
+a {
+    transition: all 0.3s ease;
+}
+
+/* ================================================================
+   MASSIVE MOUSE HOVER ANIMATIONS FOR EVERY ELEMENT
+   ================================================================ */
+
+/* ===== H1 - Neon Glow on Mouse Enter ===== */
+h1 {
+    cursor: default;
+    transition: text-shadow 0.4s ease, filter 0.4s ease;
+}
+
+h1:hover {
+    text-shadow:
+        0 0 10px rgba(124, 92, 252, 0.5),
+        0 0 30px rgba(124, 92, 252, 0.3),
+        0 0 60px rgba(0, 245, 255, 0.2),
+        0 0 100px rgba(124, 92, 252, 0.1);
+    filter: brightness(1.3);
+    animation: textShimmer 4s ease-in-out infinite, glitch 3s ease-in-out infinite;
+}
+
+/* ===== H2 - Slide Underline + Glow ===== */
+.card h2 {
+    position: relative;
+    cursor: default;
+    transition: color 0.3s ease, text-shadow 0.3s ease;
+}
+
+.card h2::after {
+    content: '';
+    position: absolute;
+    bottom: -4px;
+    left: 0;
+    width: 0;
+    height: 2px;
+    background: linear-gradient(90deg, var(--accent), var(--neon-cyan), var(--neon-pink));
+    border-radius: 2px;
+    transition: width 0.5s cubic-bezier(0.16, 1, 0.3, 1);
+    box-shadow: 0 0 8px var(--accent-glow);
+}
+
+.card h2:hover {
+    color: var(--accent-hover);
+    text-shadow: 0 0 15px var(--accent-glow);
+}
+
+.card h2:hover::after {
+    width: 100%;
+}
+
+/* ===== Subtitle - Color Shift on Hover ===== */
+.subtitle {
+    transition: color 0.4s ease, letter-spacing 0.4s ease, text-shadow 0.4s ease;
+    cursor: default;
+}
+
+.subtitle:hover {
+    color: var(--neon-cyan);
+    letter-spacing: 0.03em;
+    text-shadow: 0 0 15px rgba(0, 245, 255, 0.3);
+}
+
+/* ===== Nav Link - Morphing Background + Neon Border ===== */
+@keyframes navMorphBg {
+    0% { background-position: 0% 50%; }
+    50% { background-position: 100% 50%; }
+    100% { background-position: 0% 50%; }
+}
+
+.nav-link:not(.active):hover {
+    background: linear-gradient(135deg, rgba(124, 92, 252, 0.1), rgba(0, 245, 255, 0.05), rgba(255, 0, 170, 0.05));
+    background-size: 300% 300%;
+    animation: navMorphBg 2s ease infinite;
+    box-shadow: inset 0 0 20px rgba(124, 92, 252, 0.05), 0 0 15px rgba(124, 92, 252, 0.1);
+}
+
+.nav-link:not(.active):hover::before {
+    width: 80%;
+    left: 10%;
+    background: linear-gradient(90deg, var(--neon-cyan), var(--accent), var(--neon-pink));
+    height: 2px;
+    box-shadow: 0 0 10px var(--neon-cyan);
+}
+
+/* ===== Nav Bar - Container glow on child hover ===== */
+.nav-bar:hover {
+    border-color: rgba(124, 92, 252, 0.15);
+    box-shadow: 0 0 30px rgba(124, 92, 252, 0.08), inset 0 0 20px rgba(124, 92, 252, 0.03);
+}
+
+/* ===== Card - Enhanced hover with inner glow ripples ===== */
+@keyframes cardInnerPulse {
+    0% { box-shadow: inset 0 0 0 rgba(124, 92, 252, 0), 0 20px 50px rgba(0,0,0,0.3); }
+    50% { box-shadow: inset 0 0 40px rgba(124, 92, 252, 0.04), 0 25px 60px rgba(0,0,0,0.35); }
+    100% { box-shadow: inset 0 0 0 rgba(124, 92, 252, 0), 0 20px 50px rgba(0,0,0,0.3); }
+}
+
+.card:hover {
+    animation: cardInnerPulse 2s ease-in-out infinite;
+}
+
+/* ===== Input Fields - Rainbow Border on Hover ===== */
+@keyframes rainbowBorder {
+    0% { border-color: var(--accent); }
+    25% { border-color: var(--neon-cyan); }
+    50% { border-color: var(--neon-pink); }
+    75% { border-color: var(--neon-purple); }
+    100% { border-color: var(--accent); }
+}
+
+.input-group input:hover,
+.form-group input:hover,
+.form-group textarea:hover {
+    border-color: var(--accent);
+    background: rgba(12, 12, 22, 0.7);
+    box-shadow: 0 0 15px rgba(124, 92, 252, 0.1);
+    animation: rainbowBorder 3s linear infinite;
+}
+
+/* ===== Textarea - Breathing Effect on Hover ===== */
+@keyframes textareaBreathe {
+    0%, 100% { box-shadow: 0 0 0 rgba(124, 92, 252, 0); }
+    50% { box-shadow: 0 0 20px rgba(124, 92, 252, 0.08); }
+}
+
+.form-group textarea:hover {
+    animation: textareaBreathe 2s ease-in-out infinite, rainbowBorder 3s linear infinite;
+}
+
+/* ===== Labels - Lift + Glow on Hover ===== */
+.form-group label {
+    cursor: default;
+    position: relative;
+    transition: color 0.3s ease, transform 0.3s cubic-bezier(0.16, 1, 0.3, 1),
+                text-shadow 0.3s ease, letter-spacing 0.3s ease;
+}
+
+.form-group label:hover {
+    color: var(--accent-hover);
+    transform: translateX(4px) translateY(-1px);
+    text-shadow: 0 0 10px var(--accent-glow);
+    letter-spacing: 0.05em;
+}
+
+/* ===== User Name - Neon Text Glow ===== */
+.user-name {
+    transition: color 0.3s ease, text-shadow 0.3s ease, transform 0.3s ease, letter-spacing 0.3s ease;
+    cursor: default;
+}
+
+.user-item:hover .user-name {
+    color: #fff;
+    text-shadow: 0 0 8px var(--accent-glow), 0 0 20px rgba(124, 92, 252, 0.2);
+    transform: translateX(3px);
+    letter-spacing: 0.01em;
+}
+
+/* ===== User Date - Subtle Cyan Shift ===== */
+.user-date {
+    transition: color 0.3s ease, transform 0.3s ease;
+    cursor: default;
+}
+
+.user-item:hover .user-date {
+    color: rgba(0, 245, 255, 0.6);
+    transform: translateX(3px);
+}
+
+/* ===== User Item - Full Row Effects ===== */
+.user-item {
+    transition: background 0.4s ease, transform 0.3s cubic-bezier(0.16, 1, 0.3, 1),
+                box-shadow 0.3s ease, border-color 0.3s ease;
+    border-radius: 10px;
+    padding-left: 8px;
+    padding-right: 8px;
+    position: relative;
+}
+
+.user-item::before {
+    content: '';
+    position: absolute;
+    left: 0;
+    top: 50%;
+    width: 3px;
+    height: 0;
+    background: linear-gradient(180deg, var(--accent), var(--neon-cyan));
+    border-radius: 3px;
+    transform: translateY(-50%);
+    transition: height 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+    box-shadow: 0 0 8px var(--accent-glow);
+}
+
+.user-item:hover::before {
+    height: 60%;
+}
+
+.user-item:hover {
+    background: rgba(124, 92, 252, 0.06);
+    transform: translateX(6px);
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15);
+    border-color: rgba(124, 92, 252, 0.1);
+}
+
+/* ===== User Avatar - Multi-effect on Hover ===== */
+@keyframes avatarSpin {
+    0% { transform: scale(1.15) rotate(0deg); }
+    100% { transform: scale(1.15) rotate(360deg); }
+}
+
+.user-item:hover .user-avatar {
+    transform: scale(1.2) rotate(5deg);
+    box-shadow:
+        0 0 15px var(--accent-glow),
+        0 0 30px rgba(0, 245, 255, 0.15),
+        0 0 45px rgba(255, 0, 170, 0.1);
+    border: 2px solid rgba(255, 255, 255, 0.2);
+}
+
+/* ===== Submission Message - Expand + Glow Border ===== */
+.submission-message {
+    transition: border-color 0.3s ease, background 0.3s ease, transform 0.3s cubic-bezier(0.16, 1, 0.3, 1),
+                box-shadow 0.3s ease, color 0.3s ease, padding 0.3s ease;
+    position: relative;
+    overflow: hidden;
+}
+
+.submission-message::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: -100%;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(90deg, transparent, rgba(124, 92, 252, 0.05), transparent);
+    transition: none;
+}
+
+.submission-message:hover {
+    border-color: rgba(124, 92, 252, 0.3);
+    background: rgba(20, 20, 40, 0.6);
+    transform: translateX(4px) scale(1.01);
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.2), 0 0 15px rgba(124, 92, 252, 0.05);
+    color: var(--text);
+    padding-left: 18px;
+}
+
+.submission-message:hover::before {
+    animation: msgSweep 1s ease forwards;
+}
+
+@keyframes msgSweep {
+    0% { left: -100%; }
+    100% { left: 100%; }
+}
+
+/* ===== Badge - Bounce on Hover ===== */
+.badge {
+    cursor: default;
+    transition: transform 0.3s cubic-bezier(0.68, -0.55, 0.27, 1.55),
+                background 0.3s ease, box-shadow 0.3s ease;
+}
+
+.badge:hover {
+    transform: scale(1.3) rotate(10deg);
+    background: rgba(124, 92, 252, 0.4);
+    box-shadow: 0 0 20px var(--accent-glow), 0 0 40px rgba(124, 92, 252, 0.15);
+    animation: badgeBounce 0.5s cubic-bezier(0.68, -0.55, 0.27, 1.55);
+}
+
+@keyframes badgeBounce {
+    0% { transform: scale(1); }
+    30% { transform: scale(1.4) rotate(15deg); }
+    60% { transform: scale(1.2) rotate(5deg); }
+    100% { transform: scale(1.3) rotate(10deg); }
+}
+
+/* ===== Submit Button - Intense Hover ===== */
+.btn-submit:hover {
+    box-shadow:
+        0 4px 30px var(--accent-glow),
+        0 0 50px rgba(124, 92, 252, 0.25),
+        0 0 80px rgba(0, 245, 255, 0.1),
+        inset 0 0 30px rgba(255, 255, 255, 0.05);
+    transform: translateY(-4px) scale(1.02);
+    letter-spacing: 0.05em;
+}
+
+@keyframes btnHoverWave {
+    0% { background-position: 0% 50%; }
+    50% { background-position: 100% 50%; }
+    100% { background-position: 0% 50%; }
+}
+
+.btn-submit:hover {
+    background-size: 300% 300%;
+    animation: btnHoverWave 1.5s ease infinite;
+}
+
+/* ===== Input Group Button - Hover Morph ===== */
+.input-group button:hover {
+    box-shadow:
+        0 4px 25px var(--accent-glow),
+        0 0 40px rgba(124, 92, 252, 0.2),
+        0 0 60px rgba(124, 92, 252, 0.1);
+    letter-spacing: 0.02em;
+}
+
+/* ===== Flash Messages - Hover Highlight ===== */
+.flash {
+    cursor: default;
+    transition: transform 0.3s ease, box-shadow 0.3s ease, filter 0.3s ease;
+}
+
+.flash:hover {
+    transform: scale(1.02) translateX(4px);
+    filter: brightness(1.2);
+}
+
+.flash-success:hover {
+    box-shadow: 0 0 25px rgba(52, 211, 153, 0.2), 0 4px 15px rgba(0, 0, 0, 0.2);
+}
+
+.flash-error:hover {
+    box-shadow: 0 0 25px rgba(248, 113, 113, 0.2), 0 4px 15px rgba(0, 0, 0, 0.2);
+}
+
+/* ===== Edit/Save/Cancel Buttons - Hover Upgrades ===== */
+.btn-save:hover {
+    transform: translateY(-2px) scale(1.03) !important;
+    box-shadow: 0 4px 25px rgba(52, 211, 153, 0.35), 0 0 40px rgba(52, 211, 153, 0.15) !important;
+    letter-spacing: 0.03em;
+}
+
+.btn-cancel:hover {
+    transform: translateY(-2px) scale(1.03) !important;
+    box-shadow: 0 4px 15px rgba(255, 255, 255, 0.05) !important;
+}
+
+/* ===== Icon Buttons - Rotate + Scale ===== */
+.btn-icon {
+    transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.btn-edit:hover svg {
+    animation: penDraw 0.6s ease;
+}
+
+@keyframes penDraw {
+    0% { transform: rotate(0) scale(1); }
+    25% { transform: rotate(-15deg) scale(1.1); }
+    50% { transform: rotate(5deg) scale(1.15); }
+    75% { transform: rotate(-3deg) scale(1.1); }
+    100% { transform: rotate(0) scale(1); }
+}
+
+.btn-delete:hover svg {
+    animation: trashBounce 0.5s ease;
+}
+
+@keyframes trashBounce {
+    0% { transform: translateY(0); }
+    20% { transform: translateY(-4px); }
+    40% { transform: translateY(0); }
+    60% { transform: translateY(-2px); }
+    80% { transform: translateY(0); }
+    100% { transform: translateY(0); }
+}
+
+/* ===== Container - Mouse proximity brightness ===== */
+.container {
+    transition: filter 0.5s ease;
+}
+
+/* ===== Scroll-triggered bounce for all elements ===== */
+@keyframes bounceInUp {
+    0% { transform: translateY(60px); opacity: 0; }
+    60% { transform: translateY(-10px); opacity: 1; }
+    80% { transform: translateY(5px); }
+    100% { transform: translateY(0); }
+}
+
+@keyframes slideInFromLeft {
+    0% { transform: translateX(-80px) rotate(-3deg); opacity: 0; }
+    100% { transform: translateX(0) rotate(0); opacity: 1; }
+}
+
+@keyframes slideInFromRight {
+    0% { transform: translateX(80px) rotate(3deg); opacity: 0; }
+    100% { transform: translateX(0) rotate(0); opacity: 1; }
+}
+
+@keyframes spiralIn {
+    0% { transform: rotate(-180deg) scale(0); opacity: 0; }
+    100% { transform: rotate(0) scale(1); opacity: 1; }
+}
+
+@keyframes dropBounce {
+    0% { transform: translateY(-100px); opacity: 0; }
+    50% { transform: translateY(10px); opacity: 1; }
+    70% { transform: translateY(-5px); }
+    100% { transform: translateY(0); }
+}
+
+@keyframes scaleWobble {
+    0% { transform: scale(0) rotate(-10deg); opacity: 0; }
+    50% { transform: scale(1.05) rotate(3deg); opacity: 1; }
+    70% { transform: scale(0.97) rotate(-1deg); }
+    100% { transform: scale(1) rotate(0); }
+}
+
+/* ===== Morphing background blob ===== */
+@keyframes morphBlob {
+    0% { border-radius: 60% 40% 30% 70% / 60% 30% 70% 40%; }
+    25% { border-radius: 30% 60% 70% 40% / 50% 60% 30% 60%; }
+    50% { border-radius: 50% 60% 30% 60% / 30% 60% 70% 40%; }
+    75% { border-radius: 60% 40% 60% 30% / 60% 30% 40% 70%; }
+    100% { border-radius: 60% 40% 30% 70% / 60% 30% 70% 40%; }
+}
+
+/* ===== Electric pulse border ===== */
+@keyframes electricPulse {
+    0%, 100% { box-shadow: 0 0 5px rgba(124, 92, 252, 0.2); }
+    25% { box-shadow: 0 0 10px rgba(0, 245, 255, 0.3), 0 0 20px rgba(0, 245, 255, 0.1); }
+    50% { box-shadow: 0 0 15px rgba(255, 0, 170, 0.3), 0 0 30px rgba(255, 0, 170, 0.1); }
+    75% { box-shadow: 0 0 10px rgba(177, 78, 255, 0.3), 0 0 20px rgba(177, 78, 255, 0.1); }
+}
+
+/* ===== Neon text flicker ===== */
+@keyframes neonFlicker {
+    0%, 19%, 21%, 23%, 25%, 54%, 56%, 100% {
+        text-shadow: 0 0 5px rgba(124, 92, 252, 0.5), 0 0 20px rgba(124, 92, 252, 0.3);
+    }
+    20%, 24%, 55% {
+        text-shadow: none;
+    }
+}
+
+/* ===== Wave distortion ===== */
+@keyframes waveDistort {
+    0% { transform: skewX(0deg); }
+    25% { transform: skewX(1deg); }
+    50% { transform: skewX(0deg); }
+    75% { transform: skewX(-1deg); }
+    100% { transform: skewX(0deg); }
+}
+
+/* ===== Color orbit for borders ===== */
+@keyframes colorOrbit {
+    0% { border-color: rgba(124, 92, 252, 0.3); }
+    16% { border-color: rgba(0, 245, 255, 0.3); }
+    33% { border-color: rgba(255, 0, 170, 0.3); }
+    50% { border-color: rgba(177, 78, 255, 0.3); }
+    66% { border-color: rgba(52, 211, 153, 0.3); }
+    83% { border-color: rgba(99, 102, 241, 0.3); }
+    100% { border-color: rgba(124, 92, 252, 0.3); }
+}
+
+/* ===== Typewriter cursor blink ===== */
+@keyframes cursorBlink {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0; }
+}
+
+/* ===== Matrix rain effect on hover ===== */
+@keyframes matrixDrop {
+    0% { transform: translateY(-100%); opacity: 0; }
+    10% { opacity: 1; }
+    90% { opacity: 1; }
+    100% { transform: translateY(100%); opacity: 0; }
+}
+
+/* ===== Shake (X & Y) ===== */
+@keyframes shakeXY {
+    0%, 100% { transform: translate(0, 0); }
+    10% { transform: translate(-3px, -2px); }
+    20% { transform: translate(3px, 2px); }
+    30% { transform: translate(-3px, 2px); }
+    40% { transform: translate(3px, -2px); }
+    50% { transform: translate(-2px, 2px); }
+    60% { transform: translate(2px, -2px); }
+    70% { transform: translate(-1px, 1px); }
+    80% { transform: translate(1px, -1px); }
+}
+
+/* ===== Hue rotate cycle ===== */
+@keyframes hueRotate {
+    0% { filter: hue-rotate(0deg); }
+    100% { filter: hue-rotate(360deg); }
+}
+
+/* ===== Breath scale ===== */
+@keyframes breathe {
+    0%, 100% { transform: scale(1); }
+    50% { transform: scale(1.03); }
+}
+
+/* ===== Pop in ===== */
+@keyframes popIn {
+    0% { transform: scale(0.5); opacity: 0; }
+    70% { transform: scale(1.1); }
+    100% { transform: scale(1); opacity: 1; }
+}
+
+/* ===== Elastic snap ===== */
+@keyframes elasticSnap {
+    0% { transform: scaleX(0); }
+    40% { transform: scaleX(1.1); }
+    60% { transform: scaleX(0.95); }
+    80% { transform: scaleX(1.02); }
+    100% { transform: scaleX(1); }
+}
+
+/* ===== Lightning flash on hover ===== */
+@keyframes lightningFlash {
+    0%, 100% { opacity: 0; }
+    5% { opacity: 0.8; }
+    10% { opacity: 0; }
+    15% { opacity: 0.6; }
+    20% { opacity: 0; }
+}
+
+/* ===== Radar sweep ===== */
+@keyframes radarSweep {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+}
+
+/* ===== Neon border chase (for inputs on focus) ===== */
+@keyframes borderChase {
+    0% { background-position: 0% 0%; }
+    25% { background-position: 100% 0%; }
+    50% { background-position: 100% 100%; }
+    75% { background-position: 0% 100%; }
+    100% { background-position: 0% 0%; }
+}
+
+/* ===== Mouse-aware highlight for JS classes ===== */
+.mouse-glow-element {
+    transition: box-shadow 0.3s ease, border-color 0.3s ease, transform 0.3s ease;
+}
+
+.mouse-glow-element.mouse-near {
+    box-shadow: 0 0 20px rgba(124, 92, 252, 0.15);
+    border-color: rgba(124, 92, 252, 0.2);
+}
+
+.mouse-glow-element.mouse-over {
+    box-shadow: 0 0 30px rgba(124, 92, 252, 0.25), 0 0 60px rgba(124, 92, 252, 0.1);
+    border-color: rgba(124, 92, 252, 0.4);
+}
+
+/* ===== Text scatter effect helper ===== */
+.char-scatter {
+    display: inline-block;
+    transition: transform 0.3s cubic-bezier(0.16, 1, 0.3, 1), 
+                color 0.3s ease, text-shadow 0.3s ease;
+}
+
+.char-scatter:hover {
+    transform: translateY(-6px) rotate(5deg) scale(1.2);
+    color: var(--neon-cyan);
+    text-shadow: 0 0 10px rgba(0, 245, 255, 0.5);
+}
+
+/* ===== Sparkle overlay helper ===== */
+.sparkle {
+    position: absolute;
+    width: 6px;
+    height: 6px;
+    background: #fff;
+    border-radius: 50%;
+    pointer-events: none;
+    animation: sparkleFade 0.6s ease-out forwards;
+}
+
+@keyframes sparkleFade {
+    0% { transform: scale(0) rotate(0deg); opacity: 1; }
+    50% { transform: scale(1) rotate(180deg); opacity: 0.8; }
+    100% { transform: scale(0) rotate(360deg); opacity: 0; }
+}
+
+/* ===== Star shape sparkle ===== */
+.sparkle-star {
+    position: absolute;
+    width: 8px;
+    height: 8px;
+    pointer-events: none;
+    animation: sparkleStarAnim 0.8s ease-out forwards;
+}
+
+.sparkle-star::before,
+.sparkle-star::after {
+    content: '';
+    position: absolute;
+    background: var(--neon-cyan);
+}
+
+.sparkle-star::before {
+    width: 2px;
+    height: 100%;
+    left: 50%;
+    transform: translateX(-50%);
+}
+
+.sparkle-star::after {
+    width: 100%;
+    height: 2px;
+    top: 50%;
+    transform: translateY(-50%);
+}
+
+@keyframes sparkleStarAnim {
+    0% { transform: scale(0) rotate(0deg); opacity: 1; }
+    100% { transform: scale(1.5) rotate(45deg); opacity: 0; }
+}
+
+/* ===== Sonar ping ===== */
+.sonar-ping {
+    position: absolute;
+    border: 2px solid var(--accent);
+    border-radius: 50%;
+    pointer-events: none;
+    animation: sonarExpand 0.8s ease-out forwards;
+}
+
+@keyframes sonarExpand {
+    0% { width: 0; height: 0; opacity: 0.8; }
+    100% { width: 80px; height: 80px; opacity: 0; margin-left: -40px; margin-top: -40px; }
+}
+
+/* ===== Liquid morphing backgrounds ===== */
+@keyframes liquidMorph {
+    0% { border-radius: 30% 70% 70% 30% / 30% 30% 70% 70%; background-position: 0% 50%; }
+    25% { border-radius: 58% 42% 54% 46% / 63% 55% 45% 37%; background-position: 50% 0%; }
+    50% { border-radius: 73% 27% 38% 62% / 45% 68% 32% 55%; background-position: 100% 50%; }
+    75% { border-radius: 40% 60% 65% 35% / 55% 35% 65% 45%; background-position: 50% 100%; }
+    100% { border-radius: 30% 70% 70% 30% / 30% 30% 70% 70%; background-position: 0% 50%; }
+}
+
+/* ===== Orbit rings ===== */
+@keyframes orbitRing {
+    0% { transform: rotate(0deg) translateX(20px) rotate(0deg); }
+    100% { transform: rotate(360deg) translateX(20px) rotate(-360deg); }
+}
+
+/* ===== Electromagnetic wave ===== */
+@keyframes emWave {
+    0% { transform: translateX(-100%); opacity: 0; }
+    50% { opacity: 1; }
+    100% { transform: translateX(100%); opacity: 0; }
+}
+
+/* ===== 3D flip on hover ===== */
+@keyframes flipHover {
+    0% { transform: perspective(600px) rotateY(0deg); }
+    50% { transform: perspective(600px) rotateY(180deg); }
+    100% { transform: perspective(600px) rotateY(360deg); }
+}
+
+/* ================================================================
+   PHASE 2 - DASHBOARD LAYOUT
+   ----------------------------------------------------------------
+   Appended block. Nothing above this line was changed.
+   Everything here is additive: new class names, plus one
+   dialog::backdrop rule the file did not previously define.
+   ================================================================ */
+
+/* ===== Wide dashboard column (form pages keep .container) ===== */
+.shell-wide {
+    width: 100%;
+    max-width: 1320px;
+    position: relative;
+    z-index: 1;
+    animation: pageEnter 0.8s cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+
+/* ===== Let the existing flex rows reflow instead of squeezing ===== */
+.row-wrap {
+    flex-wrap: wrap;
+}
+
+/* ===== Statistics: four across, then two, then stacked ===== */
+.stats-row {
+    flex-wrap: wrap;
+    align-items: stretch;
+}
+
+.col-stat {
+    flex: 1 1 160px;
+}
+
+/* ===== Product table proportions: name 2 / price 1 / description 2 ===== */
+.col-2 {
+    flex: 2 1 200px;
+}
+
+.col-1 {
+    flex: 1 1 110px;
+}
+
+/* ===== Search keeps a usable width, and wraps when it cannot ===== */
+.field-grow {
+    flex: 1 1 220px;
+}
+
+/* ===== Modal backdrop ===== */
+dialog::backdrop {
+    background: rgba(6, 6, 16, 0.66);
+    backdrop-filter: blur(6px);
+    -webkit-backdrop-filter: blur(6px);
+}
+
+/* ===== Destructive confirmation button ===== */
+.btn-danger {
+    background: linear-gradient(135deg, #f87171, #e0426d) !important;
+    color: #fff !important;
+    animation: none !important;
+}
+
+.btn-danger:hover {
+    background: linear-gradient(135deg, #fca5a5, #f2547d) !important;
+    box-shadow: 0 4px 25px rgba(248, 113, 113, 0.35) !important;
+}
+
+/* ===== Phones: stack each product row into a card ===== */
+@media (max-width: 720px) {
+    .row-wrap > .col-2,
+    .row-wrap > .col-1 {
+        flex-basis: 100%;
+    }
+}
+
+/* ================================================================
+   TANTAWY WORDMARK
+   ----------------------------------------------------------------
+   Appended block. Nothing above this line was changed.
+   Same technique as the h1 - a gradient clipped to the text - and
+   the same textShimmer keyframe that already drives the headings,
+   so the brand animates in the page's existing language. The ramp
+   is red led: red into crimson into magenta, with one narrow
+   purple band that only drifts through now and then.
+   ================================================================ */
+
+.brand {
+    /* large on desktop, and small enough on a phone that the full
+       wordmark still fits the header row without being clipped */
+    font-size: clamp(0.88rem, 0.55rem + 1.15vw, 1.4rem);
+    font-weight: 800;
+    letter-spacing: 0.09em;
+    background-image: linear-gradient(100deg,
+        #ff3a2f 0%,
+        #ff1f45 15%,
+        #dc143c 29%,
+        #ff2452 41%,
+        #ff2f6d 49%,
+        #d059ff 52%,
+        #ff2f6d 55%,
+        #ff2452 63%,
+        #dc143c 75%,
+        #ff1f45 88%,
+        #ff3a2f 100%);
+    background-size: 300% 100%;
+    -webkit-background-clip: text;
+    background-clip: text;
+    -webkit-text-fill-color: transparent;
+    filter: drop-shadow(0 0 10px rgba(255, 45, 80, 0.28));
+    animation: textShimmer 6s ease-in-out infinite;
+}
+
+/* ================================================================
+   TANTAWY LOGO AURA
+   ----------------------------------------------------------------
+   Appended block. Nothing above this line was changed.
+
+   A small red nebula behind the wordmark, built from two pseudo
+   elements on the brand lockup that already exists in the markup -
+   no extra DOM, no box, no border, just radial gradients that fade
+   to nothing so they melt into the page's own galaxy.
+
+   It cannot live on .brand itself: that element paints its gradient
+   clipped to the text, so a pseudo behind it would cover the very
+   pixels that draw the letters. The lockup wrapper has no painted
+   background, so it hosts the aura safely.
+
+   Both layers reuse keyframes the site already ships - auroraShift
+   for the nebula drift, badgePulse (slowed right down) for the
+   breathing - so no new animation machinery is introduced.
+   ================================================================ */
+
+.brand-aura {
+    position: relative;          /* no stacking context: z-index -1 stays
+                                    inside .nav-bar, i.e. above its glass
+                                    but behind the wordmark */
+    width: max-content;          /* hug the lockup so the aura is centred
+                                    on the logo, not on the whole header */
+    max-width: 100%;             /* ...but never push past the header */
+}
+
+/* --- nebula: deep red core, crimson haze, a touch of magenta/purple --- */
+.brand-aura::before {
+    content: '';
+    position: absolute;
+    left: -50%;
+    right: -50%;
+    top: -130%;
+    bottom: -130%;
+    z-index: -1;
+    pointer-events: none;
+    background:
+        radial-gradient(closest-side ellipse at 44% 50%, rgba(255, 40, 62, 0.42), rgba(255, 40, 62, 0) 100%),
+        radial-gradient(closest-side ellipse at 63% 38%, rgba(220, 20, 60, 0.32), rgba(220, 20, 60, 0) 100%),
+        radial-gradient(closest-side ellipse at 30% 64%, rgba(255, 47, 109, 0.24), rgba(255, 47, 109, 0) 100%),
+        radial-gradient(closest-side ellipse at 74% 68%, rgba(177, 78, 255, 0.16), rgba(177, 78, 255, 0) 100%);
+    filter: blur(12px);
+    animation: auroraShift 30s ease-in-out infinite alternate;
+}
+
+/* --- tiny stars drifting in the haze, breathing very slowly --- */
+.brand-aura::after {
+    content: '';
+    position: absolute;
+    left: -38%;
+    right: -38%;
+    top: -108%;
+    bottom: -108%;
+    z-index: -1;
+    pointer-events: none;
+    background-image:
+        radial-gradient(1.5px 1.5px at 13% 24%, rgba(255, 255, 255, 0.85), rgba(255, 255, 255, 0)),
+        radial-gradient(1px 1px at 29% 74%, rgba(255, 150, 170, 0.80), rgba(255, 150, 170, 0)),
+        radial-gradient(1.5px 1.5px at 51% 16%, rgba(255, 120, 140, 0.75), rgba(255, 120, 140, 0)),
+        radial-gradient(1px 1px at 67% 80%, rgba(255, 255, 255, 0.70), rgba(255, 255, 255, 0)),
+        radial-gradient(1.5px 1.5px at 85% 32%, rgba(255, 90, 120, 0.80), rgba(255, 90, 120, 0)),
+        radial-gradient(1px 1px at 92% 68%, rgba(210, 140, 255, 0.60), rgba(210, 140, 255, 0)),
+        radial-gradient(1px 1px at 7% 60%, rgba(255, 200, 210, 0.60), rgba(255, 200, 210, 0)),
+        radial-gradient(1.5px 1.5px at 43% 90%, rgba(255, 70, 100, 0.70), rgba(255, 70, 100, 0));
+    animation: badgePulse 16s ease-in-out infinite;
+}
+
+/* ================================================================
+   PHASE 3 - POLISH PASS
+   ----------------------------------------------------------------
+   Appended block. Nothing above this line was changed.
+
+   Everything here is additive. It does four things:
+     1. makes UPDATE and DELETE visible without a hover
+     2. gives the MySQL statistics a real typographic hierarchy
+     3. puts the form and its live preview side by side on a desktop
+     4. floats the flash messages instead of pushing the page down
+
+   It adds no new animation types. Where motion is involved it reuses
+   keyframes the stylesheet already ships (textShimmer, headingFloat,
+   buttonGradient, borderRotate).
+   ================================================================ */
+
+
+/* ===== Skip link: first stop for a keyboard user ===== */
+.skip-link {
+    position: fixed;
+    top: -100px;
+    left: 16px;
+    z-index: 300;
+    padding: 12px 18px;
+    background: var(--surface);
+    color: var(--text);
+    border: 1px solid var(--accent);
+    border-radius: var(--radius-sm);
+    text-decoration: none;
+    font-size: 0.85rem;
+    font-weight: 600;
+    transition: top 0.2s ease;
+}
+
+.skip-link:focus {
+    top: 16px;
+}
+
+
+/* ===== Visible keyboard focus =====
+   The inputs deliberately trade `outline` for a glow, which reads well with
+   a mouse but leaves a keyboard user with nothing. :focus-visible only fires
+   for keyboard interaction, so the ring never shows up on a mouse click. */
+:focus-visible {
+    outline: 2px solid var(--neon-cyan);
+    outline-offset: 3px;
+}
+
+.form-group input:focus-visible,
+.form-group textarea:focus-visible,
+.input-group input:focus-visible,
+[data-search-input]:focus-visible {
+    outline: 2px solid rgba(0, 245, 255, 0.6);
+    outline-offset: 2px;
+}
+
+
+/* ================================================================
+   CRUD ACTIONS - UPDATE and DELETE are always visible and labelled
+   ----------------------------------------------------------------
+   The original revealed these on row hover, which hid two of the four
+   operations behind a gesture a touch device cannot make and a keyboard
+   user cannot see. They are now permanently visible, still compact, and
+   still carry every hover animation they had before.
+   ================================================================ */
+
+.user-actions {
+    opacity: 1;
+    transform: none;
+    gap: 8px;
+}
+
+/* belt and braces: hover, focus and touch all resolve to visible */
+.user-row:hover .user-actions,
+.user-row:focus-within .user-actions {
+    opacity: 1;
+    transform: none;
+}
+
+@media (hover: none) {
+    .user-actions {
+        opacity: 1;
+        transform: none;
+    }
+}
+
+/* A labelled pill instead of a bare 34px icon square. */
+.btn-icon.btn-action {
+    width: auto;
+    height: 34px;
+    padding: 0 13px;
+    gap: 7px;
+    font-family: inherit;
+    font-size: 0.78rem;
+    font-weight: 600;
+    letter-spacing: 0.02em;
+    text-decoration: none;
+    white-space: nowrap;
+}
+
+.btn-action-label {
+    line-height: 1;
+}
+
+/* A resting tint, so the two operations are legible as Edit and Delete
+   before the cursor ever reaches them. The hover states are untouched. */
+.btn-icon.btn-edit {
+    color: #a894ff;
+    border-color: rgba(124, 92, 252, 0.28);
+    background: rgba(124, 92, 252, 0.08);
+}
+
+.btn-icon.btn-delete {
+    color: #f9a1a1;
+    border-color: rgba(248, 113, 113, 0.26);
+    background: rgba(248, 113, 113, 0.07);
+}
+
+
+/* ================================================================
+   DASHBOARD STATISTICS - real MySQL numbers, sized like metrics
+   ----------------------------------------------------------------
+   Same COUNT / SUM / AVG values, same glass cards. Only the typography
+   and a per-card accent colour changed. No count-up, no new motion.
+   ================================================================ */
+
+.stat-card {
+    gap: 8px;
+    min-width: 0;
+}
+
+.stat-card .stat-head {
+    margin-bottom: 0;
+    min-width: 0;
+    font-size: 1rem;
+}
+
+.stat-icon {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 32px;
+    height: 32px;
+    border-radius: 10px;
+    flex-shrink: 0;
+}
+
+.stat-value {
+    font-size: clamp(1.5rem, 1.05rem + 1.35vw, 2.1rem);
+    font-weight: 800;
+    line-height: 1.08;
+    letter-spacing: -0.025em;
+    font-variant-numeric: tabular-nums;
+    color: var(--text);
+    white-space: nowrap;
+}
+
+/* "Latest product" holds a name, not a number, so it gets its own size
+   and keeps the ellipsis behaviour the layout already relied on. */
+.stat-value-text {
+    font-size: clamp(0.95rem, 0.82rem + 0.45vw, 1.15rem);
+    font-weight: 700;
+    letter-spacing: -0.01em;
+    line-height: 1.3;
+}
+
+.stat-label {
+    font-size: 0.7rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.13em;
+    color: var(--text-muted);
+}
+
+/* The stat headline is the number itself - it does not need the hover
+   underline that titles like "Products" and "Live preview" carry. */
+.stat-card .stat-head::after {
+    display: none;
+}
+
+/* --- per-card accent, so the four metrics read as four things --- */
+.stat-accent-cyan .stat-icon {
+    color: var(--neon-cyan);
+    background: rgba(0, 245, 255, 0.10);
+    box-shadow: inset 0 0 0 1px rgba(0, 245, 255, 0.20);
+}
+
+.stat-accent-violet .stat-icon {
+    color: var(--accent-hover);
+    background: rgba(124, 92, 252, 0.12);
+    box-shadow: inset 0 0 0 1px rgba(124, 92, 252, 0.22);
+}
+
+.stat-accent-purple .stat-icon {
+    color: var(--neon-purple);
+    background: rgba(177, 78, 255, 0.11);
+    box-shadow: inset 0 0 0 1px rgba(177, 78, 255, 0.20);
+}
+
+/* The single positive, non-destructive place the TANTAWY crimson appears
+   in the interface, so red is not only the colour of errors and delete. */
+.stat-accent-crimson .stat-icon {
+    color: #ff5470;
+    background: rgba(255, 45, 80, 0.12);
+    box-shadow: inset 0 0 0 1px rgba(255, 45, 80, 0.24);
+}
+
+.stat-accent-crimson {
+    border-color: rgba(255, 45, 80, 0.14);
+}
+
+.stat-accent-crimson:hover {
+    border-color: rgba(255, 45, 80, 0.34);
+}
+
+/* Prices line up column-to-column in the list and the preview. */
+.price-value {
+    font-variant-numeric: tabular-nums;
+}
+
+
+/* ================================================================
+   ADD / EDIT - form and live preview side by side
+   ================================================================ */
+
+.shell-form {
+    width: 100%;
+    max-width: 1180px;
+    position: relative;
+    z-index: 1;
+    animation: pageEnter 0.8s cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+
+.form-grid {
+    display: grid;
+    grid-template-columns: minmax(0, 55fr) minmax(0, 45fr);
+    gap: 20px;
+    align-items: start;
+}
+
+/* minmax(0, ...) above plus min-width:0 here is what stops a long word in
+   the preview from forcing the grid wider than the viewport. */
+.form-grid > .card {
+    margin-bottom: 0;
+    min-width: 0;
+}
+
+.preview-card {
+    position: sticky;
+    top: 24px;
+}
+
+.form-actions {
+    margin-top: 4px;
+}
+
+.field-hint {
+    display: block;
+    margin-top: 7px;
+    font-size: 0.74rem;
+    line-height: 1.5;
+    color: var(--text-muted);
+}
+
+.preview-note {
+    margin-top: 16px;
+}
+
+@media (max-width: 980px) {
+    .form-grid {
+        grid-template-columns: minmax(0, 1fr);
+    }
+
+    .preview-card {
+        position: static;
+    }
+}
+
+
+/* ===== Anchors that have to look like the existing buttons =====
+   "Add product", "Cancel" and "Back to products" navigate, so they are
+   links now rather than one-button GET forms. These rules give them the
+   same chrome, including the buttonGradient the stylesheet already uses. */
+
+.btn-link-primary {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    padding: 12px 24px;
+    background: linear-gradient(135deg, var(--accent), #6366f1);
+    background-size: 200% 200%;
+    animation: buttonGradient 3s ease infinite;
+    color: #fff;
+    border: none;
+    border-radius: var(--radius-sm);
+    font-family: inherit;
+    font-size: 0.9rem;
+    font-weight: 600;
+    text-decoration: none;
+    white-space: nowrap;
+    cursor: pointer;
+    position: relative;
+    overflow: hidden;
+    transition: transform 0.3s cubic-bezier(0.16, 1, 0.3, 1),
+                box-shadow 0.3s ease,
+                letter-spacing 0.3s ease;
+}
+
+.btn-link-primary:hover {
+    background: linear-gradient(135deg, var(--accent-hover), #818cf8);
+    background-size: 200% 200%;
+    box-shadow: 0 4px 25px var(--accent-glow), 0 0 40px rgba(124, 92, 252, 0.2);
+    transform: translateY(-2px);
+    letter-spacing: 0.02em;
+}
+
+.btn-link-primary:active {
+    transform: scale(0.95) translateY(0);
+    transition: transform 0.1s ease;
+}
+
+.btn-link-secondary {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 7px;
+    font-family: inherit;
+    font-weight: 600;
+    border-radius: var(--radius-sm);
+    text-decoration: none;
+    white-space: nowrap;
+    cursor: pointer;
+    position: relative;
+    overflow: hidden;
+    transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+
+/* ================================================================
+   TOASTS - the same flash markup, floating instead of in the flow
+   ----------------------------------------------------------------
+   They live outside <main> now, because the shell carries a transform
+   and a transformed ancestor becomes the containing block for anything
+   position:fixed inside it.
+   ================================================================ */
+
+.toast-region {
+    position: fixed;
+    /* Bottom right, so a toast never covers the header - the nav bar holds
+       the "Add product" link, and that has to stay reachable while a
+       notification is on screen. */
+    bottom: 24px;
+    right: 24px;
+    z-index: 200;
+    width: min(380px, calc(100vw - 32px));
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    pointer-events: none;
+}
+
+.toast-region .flash {
+    pointer-events: auto;
+    margin-bottom: 0;
+    padding: 13px 14px;
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
+    box-shadow: 0 18px 44px rgba(0, 0, 0, 0.42);
+}
+
+/* Floating over the page needs a solid glass base; the colour still comes
+   from the border and the text, so success and error stay distinct. */
+.toast-region .flash-success {
+    background:
+        linear-gradient(135deg, rgba(52, 211, 153, 0.16), rgba(52, 211, 153, 0.07)),
+        linear-gradient(135deg, rgba(16, 22, 38, 0.94), rgba(22, 28, 48, 0.9));
+    border-color: rgba(52, 211, 153, 0.42);
+}
+
+.toast-region .flash-error {
+    background:
+        linear-gradient(135deg, rgba(248, 113, 113, 0.16), rgba(248, 113, 113, 0.07)),
+        linear-gradient(135deg, rgba(22, 16, 26, 0.94), rgba(30, 20, 34, 0.9));
+    border-color: rgba(248, 113, 113, 0.42);
+}
+
+.toast-region .btn-icon {
+    width: 26px;
+    height: 26px;
+    border-color: transparent;
+    color: inherit;
+    opacity: 0.65;
+    flex-shrink: 0;
+}
+
+.toast-region .btn-icon:hover {
+    opacity: 1;
+    border-color: rgba(255, 255, 255, 0.18);
+}
+
+
+/* ================================================================
+   EXISTING EFFECT POLISH
+   ----------------------------------------------------------------
+   Nothing is removed from the effect system. These four rules fix
+   effects that either fought the layout or ran where nobody could
+   see them.
+   ================================================================ */
+
+/* 1. The heading keeps its shimmer, its float and its neon hover glow.
+      Only `glitch` is dropped: it shifted the title with red/cyan
+      fringing, which on the page title reads as a rendering fault and
+      made "Product Management" briefly hard to read. */
+h1:hover {
+    animation: textShimmer 4s ease-in-out infinite,
+               headingFloat 6s ease-in-out infinite;
+}
+
+/* 2. The subtitle keeps its colour shift and its glow, but no longer
+      animates letter-spacing - that re-flowed the line on every hover. */
+.subtitle,
+.subtitle:hover {
+    letter-spacing: 0.005em;
+}
+
+/* 3. Same for the empty state: the lift, the border glow and the sweep
+      all stay, the padding change goes, so the copy no longer re-wraps. */
+.submission-message:hover {
+    padding-left: 14px;
+}
+
+/* 4. The rotating gradient border only exists while a card is hovered.
+      It was running `infinite` at opacity 0 on every card on the page. */
+.card::before {
+    animation: none;
+}
+
+.card:hover::before {
+    animation: borderRotate 4s linear infinite;
+}
+
+/* 5. Three click effects used to land on the same button: the JS ripple,
+      the sonar ping, and this CSS circle - which was in fact a hover
+      effect. The JS ripple is the accurate one (it starts at the click
+      point), so this one stands down. Sonar is untouched. */
+.input-group button:hover::before {
+    animation: none;
+    width: 0;
+    height: 0;
+    opacity: 0;
+}
+
+
+/* ================================================================
+   RESPONSIVE
+   ================================================================ */
+
+/* Statistics need a little more room now that the numbers are large. */
+.col-stat {
+    flex: 1 1 210px;
+}
+
+/* Tablet: the product row has already stacked at 720px, so the actions
+   get their own line rather than being squeezed against the description. */
+@media (max-width: 720px) {
+    .user-actions {
+        width: 100%;
+        justify-content: flex-end;
+        padding-top: 4px;
+    }
+
+    .stat-value {
+        white-space: normal;
+    }
+}
+
+@media (max-width: 480px) {
+    .toast-region {
+        bottom: 12px;
+        right: 12px;
+        left: 12px;
+        width: auto;
+    }
+
+    .user-actions {
+        justify-content: stretch;
+    }
+
+    .btn-icon.btn-action,
+    .user-actions .inline-form {
+        flex: 1;
+    }
+
+    .btn-icon.btn-action {
+        width: 100%;
+    }
+}
+
+/* Nothing may push the document sideways. */
+html {
+    overflow-x: hidden;
+}
+
+
+/* The delete confirmation copy has to be on screen the instant the dialog
+   opens. .submission-message fills messageFade with `both`, and this
+   paragraph lives inside a <dialog> that is display:none when the page
+   first paints - so its animation can stay parked on frame 0, which is
+   opacity 0 *and* max-height 0. The warning text then never appears at all.
+   Inside the dialog we opt out of that entrance; the dialog already has
+   its own (cardSlideUp). */
+[data-delete-dialog] .submission-message {
+    animation: none;
+    opacity: 1;
+    max-height: none;
+}
+
+
+/* ===== Refinements found during the responsive pass ===== */
+
+/* All four labels start at the same height, whether the value above them is
+   a big number or a product name. */
+.stat-card .stat-head {
+    min-height: 44px;
+    align-items: center;
+}
+
+/* Tablet: four cards across is too tight and 3 + 1 leaves a stranded
+   full-width card, so they pair up instead. */
+@media (max-width: 980px) {
+    .col-stat {
+        flex: 1 1 calc(50% - 7px);
+        max-width: calc(50% - 7px);
+    }
+}
+
+@media (max-width: 560px) {
+    .col-stat {
+        flex: 1 1 100%;
+        max-width: 100%;
+    }
+}
+
+/* When the row is too narrow to keep the actions inline they wrap onto their
+   own line - this keeps them on the right where they started. */
+@media (max-width: 1100px) {
+    .user-actions {
+        margin-left: auto;
+    }
+}
+
+
+/* ================================================================
+   TANTAWY - FREE-FLOATING LOCKUP + COSMIC GRAVITY FIELD
+   ----------------------------------------------------------------
+   Appended block. Nothing above this line was changed.
+
+   The wordmark's font, weight, size, letter-spacing, red gradient,
+   shimmer keyframe, glow and galaxy aura are all defined further up
+   and are NOT redefined here. This block only:
+
+     1. lifts the lockup out of the glass header and centres it
+     2. centres the header underneath it
+     3. lets the logo react to a cursor entering its field, driven by
+        --pull / --pull-x / --pull-y, which script.js writes from the
+        pointer object and the rAF loop it already runs
+
+   Every reaction is written so that at --pull: 0 it evaluates to the
+   exact value the rule above already had. The resting logo is
+   therefore identical to before - the field only exists while a
+   cursor is near it.
+   ================================================================ */
+
+/* The lockup floats on its own: no background, no border, no box -
+   the galaxy aura is the only thing around it, and it is painted by
+   .brand-aura's own pseudo elements, so it travels with the logo. */
+.brand-lockup {
+    display: flex;
+    justify-content: center;
+    margin-bottom: 26px;
+    /* the same entrance it already had while it lived inside .nav-bar */
+    animation: navDrop 0.5s cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+
+/* The header keeps every one of its own styles - colours, gradient,
+   active state, hover, shine, typography, padding. It only hugs its
+   two links now and centres itself underneath the brand. */
+.nav-centered {
+    width: max-content;
+    max-width: 100%;
+    margin-left: auto;
+    margin-right: auto;
+}
+
+
+/* ===== The gravity field =====
+   script.js sets these three custom properties on .brand-aura. They
+   inherit, so the wordmark, the icon and both aura layers can all
+   read them from one write. */
+
+.brand-aura {
+    --pull: 0;      /* 0 at rest, approaching 1 as the cursor closes in */
+    --pull-x: 0;    /* px of lean toward the cursor */
+    --pull-y: 0;
+}
+
+/* The wordmark and its star icon lean toward the cursor together,
+   while the nebula behind them stays put - that difference is what
+   reads as depth rather than as a hover state. `transform` is free
+   here: textShimmer only animates background-position. */
+.brand-aura > svg,
+.brand-aura > .brand {
+    transform: translate(calc(var(--pull-x) * 1px), calc(var(--pull-y) * 1px));
+    /* .user-name carries a 0.3s transform transition; the frame loop
+       already eases this, and both together felt rubbery. */
+    transition: none;
+}
+
+/* The existing red glow deepens as the field builds.
+   At --pull: 0 this is exactly drop-shadow(0 0 10px rgba(255,45,80,0.28)). */
+.brand {
+    filter: drop-shadow(0 0 calc(10px + 13px * var(--pull))
+                        rgba(255, 45, 80, calc(0.28 + 0.3 * var(--pull))));
+}
+
+/* Nebula: swells and warms. auroraShift owns `transform` on this
+   pseudo, so the swell is done with background-size instead - no
+   conflict with the drift, and no layout work per frame. At rest the
+   size is 100%, where background-position and no-repeat cannot change
+   what is painted, so the resting nebula is untouched. */
+.brand-aura::before {
+    background-repeat: no-repeat;
+    background-position: center;
+    background-size: calc(100% + 26% * var(--pull)) calc(100% + 26% * var(--pull));
+    filter: blur(calc(12px + 3px * var(--pull)))
+            saturate(calc(1 + 0.45 * var(--pull)))
+            brightness(calc(1 + 0.2 * var(--pull)));
+}
+
+/* Stars: they spread outward from the wordmark and drift with the
+   cursor, so the field looks like it is carrying them. badgePulse
+   owns `transform` here too, hence background-size / -position again. */
+.brand-aura::after {
+    background-repeat: no-repeat;
+    background-size: calc(100% + 18% * var(--pull)) calc(100% + 18% * var(--pull));
+    background-position:
+        calc(50% + var(--pull-x) * 1.7px)
+        calc(50% + var(--pull-y) * 1.7px);
+    filter: brightness(calc(1 + 0.75 * var(--pull)));
+}
+
+@media (max-width: 480px) {
+    .brand-lockup {
+        margin-bottom: 20px;
+    }
+}
+
+
+/* ================================================================
+   REDUCED MOTION
+   ----------------------------------------------------------------
+   The normal experience is completely unchanged - this block only
+   applies when the operating system asks for reduced motion.
+
+   The identity survives: the aurora, the star field, the glass, the
+   gradients and the crimson TANTAWY wordmark are all still painted.
+   They simply stop moving. Entrance animations use `fill-mode: both`
+   throughout, so collapsing their duration lands them on their final
+   frame, fully visible, rather than hiding them.
+   ================================================================ */
+
+@media (prefers-reduced-motion: reduce) {
+
+    *,
+    *::before,
+    *::after {
+        animation-duration: 0.001ms !important;
+        animation-iteration-count: 1 !important;
+        animation-delay: 0ms !important;
+        transition-duration: 0.001ms !important;
+        transition-delay: 0ms !important;
+        scroll-behavior: auto !important;
+    }
+
+    /* Anything that is only visible because something moved has to be
+       pinned open by hand. */
+    .user-actions {
+        opacity: 1 !important;
+        transform: none !important;
+    }
+
+    .container,
+    .shell-wide,
+    .shell-form,
+    .card,
+    .user-item,
+    .flash,
+    .subtitle,
+    .submission-message,
+    .nav-bar,
+    .form-group,
+    .card h2 {
+        opacity: 1 !important;
+        filter: none !important;
+        clip-path: none !important;
+    }
+
+    /* Hover states that move the layout stand down too. */
+    .card:hover,
+    .user-item:hover,
+    .flash:hover,
+    .submission-message:hover,
+    .btn-submit:hover,
+    .btn-link-primary:hover {
+        transform: none !important;
+    }
+
+    /* The gradient-clipped wordmark and heading keep their colour: the
+       shimmer keyframe is frozen, not the gradient underneath it. */
+    h1,
+    .brand {
+        background-position: 0% 50% !important;
+    }
+}
+
+
+/* ================================================================
+   TANTAWY - 2x WORDMARK + GALAXY ORBIT FIELD
+   ----------------------------------------------------------------
+   Appended block. Nothing above this line was changed.
+
+   Two things only:
+
+     1. the wordmark is scaled to roughly twice its previous size.
+        Its font, weight, letter-spacing, red gradient, textShimmer
+        keyframe, drop-shadow glow and galaxy aura are all defined
+        further up and are NOT redefined here - only font-size moves,
+        so the letter proportions are untouched.
+
+     2. a galaxy orbit field that is completely invisible until the
+        cursor is over the wordmark. Five thin elliptical energy
+        paths with a few glowing motes riding them, painted entirely
+        with conic-gradients, radial-gradient masks and transforms.
+
+   The field reads the SAME --pull / --pull-x / --pull-y custom
+   properties that initBrandGravity already writes on .brand-aura
+   from the shared pointer object and the single rAF loop. It adds
+   no listener, no loop, no runtime DOM and no particle engine, and
+   every ring's animation sits paused until the cursor arrives.
+   ================================================================ */
+
+
+/* ===== 1. Size: current size x 2 =====
+   Every term of the old clamp is doubled -
+   0.88 -> 1.76rem, 0.55rem + 1.15vw -> 1.1rem + 2.3vw, 1.4 -> 2.8rem -
+   so the wordmark is 2x at every viewport, not just at the ends. */
+.brand {
+    font-size: clamp(1.76rem, 1.1rem + 2.3vw, 2.8rem);
+    /* a display line-height, so the taller type does not open a gap
+       under the logo; 1.3 still clears Inter's full content area, so
+       nothing is cropped */
+    line-height: 1.3;
+    /* .user-name clips its overflow for table rows; at this size that
+       would risk shaving the glow off the caps */
+    overflow: visible;
+}
+
+/* The star icon grows with the wordmark so the lockup keeps its
+   proportions - it is the same 18px SVG, just drawn larger. */
+.brand-aura > svg {
+    width: clamp(26px, 20px + 1.1vw, 34px);
+    height: clamp(26px, 20px + 1.1vw, 34px);
+    flex-shrink: 0;
+}
+
+@media (max-width: 480px) {
+    /* keep the lockup comfortably inside a 390px viewport */
+    .brand {
+        letter-spacing: 0.07em;
+    }
+    .brand-aura {
+        gap: 10px;
+    }
+}
+
+
+/* ===== 2. The orbit field =====
+   Absolutely positioned over the lockup's own box, so every ring
+   size below is a percentage of the wordmark and scales with it.
+   z-index: -1 matches the existing aura layers, which keeps the
+   whole field behind the letters; pointer-events: none keeps the
+   hover target as the wordmark itself. */
+.brand-orbits {
+    position: absolute;
+    inset: 0;
+    z-index: -1;
+    pointer-events: none;
+    opacity: 0;
+    /* subtle parallax: the field leads, the wordmark follows. Written
+       from the same --pull-x/--pull-y the gravity task already sets,
+       and deliberately untransitioned - the frame loop eases it. */
+    transform: translate(calc(var(--pull-x) * 1.6px),
+                         calc(var(--pull-y) * 1.6px));
+    transition: opacity 620ms cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+/* The cosmic field itself: a soft red haze whose core drifts toward
+   the cursor, so the near side of the galaxy reads brighter. */
+.brand-orbits::before {
+    content: '';
+    position: absolute;
+    left: -22%;
+    right: -22%;
+    top: -145%;
+    bottom: -145%;
+    border-radius: 50%;
+    background:
+        radial-gradient(closest-side ellipse
+            at calc(50% + 2.4% * var(--pull-x)) calc(50% + 2.4% * var(--pull-y)),
+            rgba(255, 44, 78, 0.26),
+            rgba(255, 40, 88, 0.10) 58%,
+            rgba(255, 40, 88, 0) 100%),
+        radial-gradient(closest-side ellipse at 72% 34%,
+            rgba(206, 62, 255, 0.09), rgba(206, 62, 255, 0) 100%);
+    filter: blur(16px);
+}
+
+/* ---- a single orbital path ----
+   The element is a circle; the tilt/flatten pair turns it into a
+   tilted ellipse, and because the spin sits AFTER scaleY in the
+   transform list, a mote pinned to the circle's edge traces that
+   ellipse exactly instead of cutting across it. */
+.orbit {
+    position: absolute;
+    left: 50%;
+    top: 50%;
+    width: var(--o);
+    aspect-ratio: 1;
+    opacity: 0;
+    transform: translate(-50%, -50%)
+               rotate(var(--tilt)) scaleY(var(--flat)) rotate(0deg);
+    transition: opacity 480ms ease;
+    animation: brandOrbitSpin var(--spin) linear infinite,
+               brandOrbitBreathe var(--breathe) ease-in-out infinite;
+    /* nothing runs until the cursor arrives - on a resting page, and
+       on any touch device, these cost exactly nothing */
+    animation-play-state: paused, paused;
+}
+
+/* The luminous path: a conic arc of energy, cut down to a ~1px ring
+   by a radial mask. The mask has to live on this layer alone - the
+   glow is on the parent, because filters are applied before masking
+   and would otherwise be shaved off with the rest of the disc. */
+.orbit::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    border-radius: 50%;
+    background: conic-gradient(from var(--arc),
+        rgba(255, 60, 90, 0) 0deg,
+        var(--c-a) 38deg,
+        var(--c-b) 104deg,
+        var(--c-c) 158deg,
+        rgba(255, 60, 90, 0) 226deg,
+        rgba(255, 60, 90, 0) 322deg,
+        var(--c-a) 360deg);
+    -webkit-mask: radial-gradient(closest-side,
+        rgba(0, 0, 0, 0) calc(100% - 3.4px),
+        #000 calc(100% - 2.1px),
+        #000 calc(100% - 1.1px),
+        rgba(0, 0, 0, 0) 100%);
+            mask: radial-gradient(closest-side,
+        rgba(0, 0, 0, 0) calc(100% - 3.4px),
+        #000 calc(100% - 2.1px),
+        #000 calc(100% - 1.1px),
+        rgba(0, 0, 0, 0) 100%);
+}
+
+/* ---- the five paths ----
+   Different sizes, angles, flattening and speeds, with two running
+   the other way, so the system never falls into lockstep. The
+   negative delays give each ring a different starting phase, which
+   is what it is frozen on before the first hover. */
+.orbit-1 {
+    --o: 138%; --tilt: -13deg; --flat: 0.34; --spin: 34s; --breathe: 9s;
+    --arc: 12deg;
+    --c-a: rgba(255, 46, 72, 0.62);
+    --c-b: rgba(220, 20, 60, 0.85);
+    --c-c: rgba(255, 62, 116, 0.42);
+    --glow-a: rgba(255, 40, 70, 0.30);
+    --glow-b: rgba(255, 52, 96, 0.48);
+    --op: 0.72;
+    animation-delay: -21s, -2.4s;
+}
+
+.orbit-2 {
+    --o: 118%; --tilt: 19deg; --flat: 0.44; --spin: 24s; --breathe: 7s;
+    --arc: 168deg;
+    --c-a: rgba(255, 32, 64, 0.90);
+    --c-b: rgba(255, 47, 109, 0.95);
+    --c-c: rgba(214, 62, 255, 0.34);
+    --glow-a: rgba(255, 40, 80, 0.38);
+    --glow-b: rgba(255, 58, 110, 0.62);
+    --op: 0.95;
+    animation-direction: reverse, normal;
+    animation-delay: -9s, -5.1s;
+}
+
+.orbit-3 {
+    --o: 100%; --tilt: -34deg; --flat: 0.40; --spin: 29s; --breathe: 11s;
+    --arc: 296deg;
+    --c-a: rgba(255, 58, 47, 0.78);
+    --c-b: rgba(255, 31, 69, 0.92);
+    --c-c: rgba(255, 92, 150, 0.38);
+    --glow-a: rgba(255, 46, 62, 0.34);
+    --glow-b: rgba(255, 40, 90, 0.56);
+    --op: 0.88;
+    animation-delay: -14.5s, -8.2s;
+}
+
+.orbit-4 {
+    --o: 86%; --tilt: 46deg; --flat: 0.58; --spin: 20s; --breathe: 8s;
+    --arc: 82deg;
+    --c-a: rgba(220, 20, 60, 0.70);
+    --c-b: rgba(255, 47, 109, 0.82);
+    --c-c: rgba(177, 78, 255, 0.30);
+    --glow-a: rgba(232, 34, 84, 0.30);
+    --glow-b: rgba(255, 50, 118, 0.50);
+    --op: 0.80;
+    animation-direction: reverse, normal;
+    animation-delay: -6.5s, -1.3s;
+}
+
+.orbit-5 {
+    --o: 70%; --tilt: 6deg; --flat: 0.72; --spin: 16s; --breathe: 6s;
+    --arc: 232deg;
+    --c-a: rgba(255, 70, 58, 0.86);
+    --c-b: rgba(255, 36, 82, 0.94);
+    /* the one cool note in the whole field, and it is barely there */
+    --c-c: rgba(96, 210, 255, 0.16);
+    --glow-a: rgba(255, 52, 70, 0.36);
+    --glow-b: rgba(255, 44, 92, 0.58);
+    --op: 0.85;
+    animation-delay: -11s, -3.7s;
+}
+
+/* ---- motes riding the paths ----
+   Pinned to the circle's edge, so the parent's spin carries them
+   around the ellipse. Five of them across four of the five rings. */
+.orbit-mote {
+    position: absolute;
+    top: 50%;
+    left: 100%;
+    width: 3px;
+    height: 3px;
+    margin: -1.5px 0 0 -1.5px;
+    border-radius: 50%;
+    background: radial-gradient(circle,
+        #fff 0%,
+        #ffd9e2 30%,
+        rgba(255, 62, 104, 0.95) 62%,
+        rgba(255, 45, 85, 0) 100%);
+    box-shadow: 0 0 7px 1.5px rgba(255, 58, 98, 0.55);
+}
+
+/* second mote on one path, further round from the first */
+.orbit-mote.mote-b {
+    top: 85.36%;
+    left: 14.64%;
+    width: 2px;
+    height: 2px;
+    margin: -1px 0 0 -1px;
+    background: radial-gradient(circle,
+        #fff 0%,
+        rgba(255, 150, 190, 0.9) 45%,
+        rgba(255, 60, 120, 0) 100%);
+    box-shadow: 0 0 5px 1px rgba(255, 70, 130, 0.45);
+}
+
+@keyframes brandOrbitSpin {
+    from {
+        transform: translate(-50%, -50%)
+                   rotate(var(--tilt)) scaleY(var(--flat)) rotate(0deg);
+    }
+    to {
+        transform: translate(-50%, -50%)
+                   rotate(var(--tilt)) scaleY(var(--flat)) rotate(360deg);
+    }
+}
+
+/* The breathing is a glow swell rather than an opacity swell, so it
+   never fights the enter/exit fade for control of opacity. */
+@keyframes brandOrbitBreathe {
+    0%, 100% { filter: drop-shadow(0 0 4px var(--glow-a)); }
+    50%      { filter: drop-shadow(0 0 10px var(--glow-b)); }
+}
+
+
+/* ===== 3. Awakening the galaxy =====
+   Gated on a real hovering pointer, so a touch device never lands in
+   a permanent hover state and never runs the orbit animations. */
+@media (hover: hover) and (pointer: fine) {
+
+    .brand-aura:hover .brand-orbits {
+        opacity: 1;
+        transition-duration: 420ms;
+    }
+
+    .brand-aura:hover .orbit {
+        opacity: var(--op);
+        transition-duration: 300ms;
+        animation-play-state: running, running;
+    }
+
+    /* the rings light up one after another, the whole system settling
+       in at about 480ms - a materialisation, not a switch */
+    .brand-aura:hover .orbit-5 { transition-delay: 0ms; }
+    .brand-aura:hover .orbit-4 { transition-delay: 45ms; }
+    .brand-aura:hover .orbit-3 { transition-delay: 90ms; }
+    .brand-aura:hover .orbit-2 { transition-delay: 135ms; }
+    .brand-aura:hover .orbit-1 { transition-delay: 180ms; }
+}
+
+/* Small screens: pull the two outermost paths in so the field stays
+   clear of the viewport edges at 390px. */
+@media (max-width: 560px) {
+    .orbit-1 { --o: 122%; }
+    .orbit-2 { --o: 108%; }
+}
+
+
+/* ===== 4. Reduced motion =====
+   Last word in the file, after the global reduced-motion block. The
+   wordmark keeps its new size, its gradient and its aura; the orbit
+   field - which exists only as motion - simply is not there. */
+@media (prefers-reduced-motion: reduce) {
+    .brand-orbits {
+        display: none !important;
+    }
+}

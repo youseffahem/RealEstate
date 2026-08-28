@@ -1,0 +1,87 @@
+{% import "_icons.html" as ico %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}TANTAWY{% endblock %}</title>
+    <meta name="description" content="TANTAWY - a Flask and MySQL product management system: create, read, update and delete products.">
+    <link rel="icon" href="{{ url_for('static', filename='favicon.svg') }}" type="image/svg+xml">
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+</head>
+<body>
+
+    <a href="#main-content" class="skip-link">Skip to main content</a>
+
+    {# Form pages keep a focused column; the dashboard overrides this to run wide. #}
+    <main class="{% block shell_class %}container{% endblock %}" id="main-content">
+
+        <!-- ===== Brand: floats free above the header, in its own space.
+               No container, no box - the galaxy aura on .brand-aura is the
+               only thing around it, and it travels with the lockup. ===== -->
+        <div class="brand-lockup">
+            <span class="user-row brand-aura">
+                {# Galaxy orbit field: purely decorative, click-through, and
+                   invisible until the cursor enters the wordmark. Static
+                   markup - nothing here is ever created at runtime. #}
+                <span class="brand-orbits" aria-hidden="true">
+                    <span class="orbit orbit-1"><i class="orbit-mote"></i></span>
+                    <span class="orbit orbit-2"><i class="orbit-mote"></i></span>
+                    <span class="orbit orbit-3"><i class="orbit-mote"></i><i class="orbit-mote mote-b"></i></span>
+                    <span class="orbit orbit-4"></span>
+                    <span class="orbit orbit-5"><i class="orbit-mote"></i></span>
+                </span>
+                {{ ico.icon('sparkle', 18) }}
+                <span class="user-name brand">TANTAWY</span>
+            </span>
+        </div>
+
+        <!-- ===== Floating glass header: sections, centred under the brand ===== -->
+        <nav class="nav-bar user-row row-wrap nav-centered" aria-label="Main">
+            <span class="user-row">
+                <a href="{{ url_for('index') }}"
+                   class="nav-link {% if request.endpoint == 'index' %}active{% endif %}"
+                   {% if request.endpoint == 'index' %}aria-current="page"{% endif %}>Products</a>
+                <a href="{{ url_for('add_product') }}"
+                   class="nav-link {% if request.endpoint == 'add_product' %}active{% endif %}"
+                   {% if request.endpoint == 'add_product' %}aria-current="page"{% endif %}>Add&nbsp;product</a>
+            </span>
+        </nav>
+
+        {% block breadcrumb %}{% endblock %}
+
+        <h1>{% block heading %}Product Management{% endblock %}</h1>
+        <p class="subtitle">{% block subtitle %}Manage your catalog, pricing and product information.{% endblock %}</p>
+
+        {% block content %}{% endblock %}
+
+    </main>
+
+    <!-- ===== Toasts: the existing Flask flash messages, auto-dismissed by script.js.
+           They sit outside <main> so they float over the page instead of pushing
+           it down - the shell carries a transform, which would otherwise become
+           the containing block for anything position:fixed inside it. ===== -->
+    {% with messages = get_flashed_messages(with_categories=true) %}
+        {% if messages %}
+        <div data-toast-region class="toast-region" role="region" aria-label="Notifications">
+            {% for category, message in messages %}
+            <div class="flash flash-{{ category }} user-row" role="status" data-toast>
+                {{ ico.icon('check' if category == 'success' else 'alert', 18) }}
+                <span class="user-info"><span>{{ message }}</span></span>
+                <button type="button" class="btn-icon" data-toast-close aria-label="Dismiss notification">
+                    {{ ico.icon('close', 14) }}
+                </button>
+            </div>
+            {% endfor %}
+        </div>
+        {% endif %}
+    {% endwith %}
+
+    {% block dialogs %}{% endblock %}
+
+    <script src="{{ url_for('static', filename='script.js') }}"></script>
+</body>
+</html>

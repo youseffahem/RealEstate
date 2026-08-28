@@ -1,0 +1,69 @@
+{# Shared by add.html and edit.html so both pages stay visually identical.
+   Expects: form_action, submit_label, product (name / price / description).
+
+   The two sections sit in .form-grid, which is a 55/45 two-column grid on a
+   desktop and a single column below 980px. #}
+{% import "_icons.html" as ico %}
+
+<div class="form-grid">
+
+    <section class="card form-card">
+        <h2>{{ ico.icon('package') }} Product details</h2>
+
+        <form id="product-form" action="{{ form_action }}" method="POST">
+
+            <div class="form-group">
+                <label for="name">Product name</label>
+                <input type="text" name="name" id="name" placeholder="e.g. Aurora Wireless Headphones"
+                       value="{{ product.name }}" autocomplete="off" required
+                       maxlength="120" aria-describedby="name-hint" data-preview="name">
+                <span class="field-hint" id="name-hint">Up to 120 characters.</span>
+            </div>
+
+            <div class="form-group">
+                <label for="price">Price</label>
+                <input type="text" name="price" id="price" inputmode="decimal" placeholder="0.00"
+                       value="{{ product.price }}" autocomplete="off" required
+                       aria-describedby="price-hint" data-preview="price">
+                <span class="field-hint" id="price-hint">Numbers only, in US dollars — for example 249.99.</span>
+            </div>
+
+            <div class="form-group">
+                <label for="description">Description</label>
+                <textarea name="description" id="description" rows="4" required
+                          placeholder="What is this product, and who is it for?"
+                          aria-describedby="description-hint" data-preview="description">{{ product.description }}</textarea>
+                <span class="field-hint" id="description-hint">Shown underneath the product in the catalog.</span>
+            </div>
+
+        </form>
+
+        <span class="input-group form-actions">
+            <a href="{{ url_for('index') }}" class="btn-link-secondary btn-cancel">Cancel</a>
+            <span class="user-info" aria-hidden="true"></span>
+            <button type="submit" form="product-form">{{ ico.icon('check', 15) }} {{ submit_label }}</button>
+        </span>
+    </section>
+
+    <!-- ===== Live preview: how this product will appear in the catalog ===== -->
+    <section class="card preview-card">
+        <h2>{{ ico.icon('sparkle') }} Live preview</h2>
+
+        <ul class="user-list">
+            <li class="user-item">
+                <div class="user-row">
+                    <span class="user-avatar" aria-hidden="true" data-preview-out="avatar">—</span>
+                    <span class="user-info">
+                        <span class="user-name" data-preview-out="name">Product name</span>
+                        <span class="user-date price-value" data-preview-out="price">$0.00</span>
+                    </span>
+                </div>
+                <div class="submission-message" data-preview-out="description">Your description will appear here.</div>
+            </li>
+        </ul>
+
+        <p class="field-hint preview-note">This updates as you type. It is exactly how the product will be
+            listed on the Products page.</p>
+    </section>
+
+</div>

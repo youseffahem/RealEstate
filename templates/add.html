@@ -1,0 +1,25 @@
+{% extends "base.html" %}
+{% import "_icons.html" as ico %}
+
+{% block title %}Create product · TANTAWY{% endblock %}
+
+{# .shell-form: a wider column than .container, so the form and the live
+   preview can sit side by side on a desktop. #}
+{% block shell_class %}shell-form{% endblock %}
+
+{% block breadcrumb %}
+    <span class="form-group input-group">
+        <a href="{{ url_for('index') }}" class="btn-link-secondary btn-cancel">{{ ico.icon('arrow-left', 14) }}
+            Back to products</a>
+        <span class="user-info" aria-hidden="true"></span>
+    </span>
+{% endblock %}
+
+{% block heading %}Create product{% endblock %}
+{% block subtitle %}Add a new product to your catalog.{% endblock %}
+
+{% block content %}
+    {% with form_action = url_for('add_product'), submit_label = 'Create product' %}
+        {% include "_product_form.html" %}
+    {% endwith %}
+{% endblock %}
