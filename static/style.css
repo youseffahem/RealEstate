@@ -4141,6 +4141,15 @@ body {
     color: #b45309;
 }
 
+/* .nav-link.active's white label (correct on dark mode's near-black
+   accent gradient) loses too much contrast against light mode's
+   brighter #6d4ae0 -> #6366f1 gradient. Swap in a deep violet that
+   stays legible on that gradient while keeping the same background,
+   glow, pulse and shine untouched. */
+[data-theme="light"] .nav-link.active {
+    color: #2e1065;
+}
+
 
 /* ================================================================
    FILE UPLOAD INPUT STYLING & ADD PROPERTY DIMENSION FIXES
