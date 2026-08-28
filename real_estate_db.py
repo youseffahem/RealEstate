@@ -1,9 +1,7 @@
 """Real Estate database architecture for the REAL ESTATE Management System.
 
-This module owns the *new* schema only: property_types, locations, agents,
-properties, property_images and inquiries. It does not touch the legacy
-`products` table (see app.py / README.md for why that table is preserved
-as-is rather than migrated).
+This module owns the whole schema: property_types, locations, agents,
+properties, property_images and inquiries.
 
 Everything here is safe to run every time the app starts:
 
@@ -13,8 +11,7 @@ Everything here is safe to run every time the app starts:
   by a natural/unique key - name, (name, city) or email), so running it
   again and again never creates duplicates;
 - the demo properties (and their images/inquiries) are only inserted while
-  the `properties` table is still completely empty, the same rule already
-  used for the legacy `products` demo catalog in app.py.
+  the `properties` table is still completely empty.
 
 No routes, templates or the visual system are touched by this module - it
 is a pure database layer, wired into the app in one place (app.py:init_db).
@@ -410,9 +407,9 @@ def seed_properties(cursor):
     """Insert the demo properties (with their images and inquiries), but only
     while the properties table is still completely empty.
 
-    This mirrors the rule already used for the legacy `products` catalog:
-    it is safe to call on every startup, it never duplicates rows on the
-    next run, and it never touches a property created by a real user.
+    This keeps the seed repeatable and safe: it is safe to call on every
+    startup, it never duplicates rows on the next run, and it never touches
+    a property created by a real user.
     Returns (properties_inserted, images_inserted, inquiries_inserted).
     """
     cursor.execute("SELECT COUNT(*) FROM properties")

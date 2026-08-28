@@ -2326,8 +2326,8 @@ a.brand-aura {
 
 
 /* ===== Anchors that have to look like the existing buttons =====
-   "Add product", "Cancel" and "Back to products" navigate, so they are
-   links now rather than one-button GET forms. These rules give them the
+   "Add Property", "Cancel" and "Back to Properties" navigate, so they are
+   links rather than one-button GET forms. These rules give them the
    same chrome, including the buttonGradient the stylesheet already uses. */
 
 .btn-link-primary {

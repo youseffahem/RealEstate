@@ -1,13 +1,12 @@
-"""Phase 2 backend tests for the Real Estate `properties` API.
+"""Backend tests for the Real Estate `properties` JSON API.
 
-These exercise the new /properties routes end to end through the Flask
+These exercise the /properties routes end to end through the Flask
 test client - full CRUD, validation, the listing_type/status business
-rules, security and error handling. The legacy CRUD tests in test_crud.py
-and the Phase 1 schema tests in test_real_estate_schema.py are untouched
-and still pass independently.
+rules, security and error handling. The schema tests in
+test_real_estate_schema.py are untouched and still pass independently.
 
 Every test that creates a property registers its id with `track_properties`
-so the Phase 1 seeded catalog (and its counts) is restored afterwards.
+so the seeded catalog (and its counts) is restored afterwards.
 
 Run with:  python -m pytest -v
 """
@@ -320,7 +319,7 @@ def test_get_nonexistent_property_returns_404(client):
 
 
 def test_invalid_property_id_in_url_does_not_crash(client):
-    # <int:id> refuses this at the routing level, same as the legacy /edit/<id>.
+    # <int:id> refuses this at the routing level.
     response = client.get("/properties/not-a-number")
     assert response.status_code in (302, 404)
 

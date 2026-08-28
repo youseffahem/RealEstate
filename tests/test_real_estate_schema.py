@@ -1,11 +1,9 @@
-"""Phase 1 architecture tests for the Real Estate schema.
+"""Architecture tests for the Real Estate schema.
 
 These tests check the *database layer* only: tables, primary keys, foreign
-keys, indexes, controlled ENUM values, seed data and idempotency. There are
-no routes or UI for properties/agents/locations/inquiries yet - that is
-Phase 2 - so there is nothing to test at the HTTP layer for this schema
-yet. The legacy CRUD tests in test_crud.py are untouched and still cover
-the existing `/`, `/add`, `/edit`, `/delete` routes end to end.
+keys, indexes, controlled ENUM values, seed data and idempotency. The HTTP
+layer for properties/agents/locations/inquiries is covered by the other
+test files (test_properties.py, test_agents.py, test_inquiries.py, ...).
 
 Run with:  python -m pytest -v
 """
@@ -41,7 +39,7 @@ def _foreign_keys():
 
 
 # =====================================================================
-# TABLES AND LEGACY DATA
+# TABLES
 # =====================================================================
 
 def test_all_real_estate_tables_exist():
@@ -51,9 +49,10 @@ def test_all_real_estate_tables_exist():
         assert name in tables
 
 
-def test_legacy_products_table_is_preserved_alongside_the_new_schema():
-    # Phase 1 adds tables, it does not remove or rename the old one.
-    assert "products" in _table_names()
+def test_legacy_products_table_is_removed():
+    # The Product CRUD exercise this app started from has been fully
+    # removed - init_db() drops the table if an old database still has it.
+    assert "products" not in _table_names()
 
 
 # =====================================================================

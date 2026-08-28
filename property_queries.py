@@ -263,7 +263,7 @@ def get_property_stats(connection):
     """Dashboard numbers, computed straight from MySQL - nothing hard coded.
 
     Safe to call on an empty table: COUNT/SUM/AVG degrade to 0 instead of
-    raising, the same rule already used by app.get_stats() for products.
+    raising.
     """
     stats = {
         "total": 0, "available": 0, "reserved": 0, "sold": 0, "rented": 0,

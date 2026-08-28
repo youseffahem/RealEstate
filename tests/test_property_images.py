@@ -293,9 +293,15 @@ def test_status_filter_still_works(client, track_properties, property_ids):
 # =====================================================================
 
 def test_brand_links_to_dashboard(client):
-    html = client.get("/").get_data(as_text=True)
+    html = client.get("/", follow_redirects=True).get_data(as_text=True)
     assert '<a href="/dashboard" class="user-row brand-aura"' in html
     assert "REAL ESTATE" in html
+
+
+def test_root_redirects_to_dashboard(client):
+    response = client.get("/")
+    assert response.status_code == 302
+    assert response.headers["Location"] == "/dashboard"
 
 
 # =====================================================================

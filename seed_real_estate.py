@@ -15,9 +15,6 @@ duplicate. The demo properties (with their placeholder images and demo
 inquiries) are only inserted while the properties table is completely
 empty - the same rule the app itself uses - so an existing property is
 never touched by this script.
-
-This script does not touch the legacy `products` table; see seed.py for
-that.
 """
 
 import mysql.connector

@@ -23,9 +23,8 @@ import app as app_module  # noqa: E402  (must come after the env is set)
 
 @pytest.fixture()
 def client():
-    """A Flask test client against an empty products table."""
+    """A Flask test client against the Real Estate test database."""
     app_module.app.config["TESTING"] = True
-    clear_products()
     with app_module.app.test_client() as test_client:
         yield test_client
 
@@ -36,62 +35,15 @@ def db():
     return app_module
 
 
-def clear_products():
-    connection = app_module.get_connection()
-    cursor = connection.cursor()
-    cursor.execute("DELETE FROM products")
-    connection.commit()
-    cursor.close()
-    connection.close()
-
-
-def insert_product(name="Test Product", price=10.00, description="A test product."):
-    """Insert one row directly and return its id."""
-    connection = app_module.get_connection()
-    cursor = connection.cursor()
-    cursor.execute(
-        "INSERT INTO products (name, price, description) VALUES (%s, %s, %s)",
-        (name, price, description),
-    )
-    connection.commit()
-    new_id = cursor.lastrowid
-    cursor.close()
-    connection.close()
-    return new_id
-
-
-def fetch_product(product_id):
-    connection = app_module.get_connection()
-    cursor = connection.cursor(dictionary=True)
-    cursor.execute(
-        "SELECT id, name, price, description FROM products WHERE id = %s",
-        (product_id,),
-    )
-    row = cursor.fetchone()
-    cursor.close()
-    connection.close()
-    return row
-
-
-def count_products():
-    connection = app_module.get_connection()
-    cursor = connection.cursor()
-    cursor.execute("SELECT COUNT(*) FROM products")
-    total = cursor.fetchone()[0]
-    cursor.close()
-    connection.close()
-    return total
-
-
 # =====================================================================
-# Real Estate (Phase 2) helpers
+# Real Estate helpers
 #
-# Unlike clear_products() above, these never wipe a whole table: the
-# property CRUD tests run against the same test database as the Phase 1
-# schema tests (tests/test_real_estate_schema.py), which asserts specific
-# seeded counts (8 property types, 10-15 properties, ...). Every helper
-# below only reads the seeded reference data, or inserts/deletes exactly
-# the one row a test itself created - see the `track_properties` fixture.
+# These never wipe a whole table: the property CRUD tests run against the
+# same test database as the schema tests (tests/test_real_estate_schema.py),
+# which asserts specific seeded counts (8 property types, 10-15 properties,
+# ...). Every helper below only reads the seeded reference data, or
+# inserts/deletes exactly the one row a test itself created - see the
+# `track_properties` fixture.
 # =====================================================================
 
 def get_property_type_id():

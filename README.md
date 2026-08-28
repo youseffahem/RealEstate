@@ -16,10 +16,9 @@ grid, a photo gallery per property, an agent directory, a customer inquiry/lead 
 a dashboard with live, database-driven analytics. Every number on screen is a real aggregate
 query — nothing shown in the app is hard coded.
 
-The original product catalog (`/`, `/add`, `/edit/<id>`, `/delete/<id>`) is kept, unlinked
-from the navigation, exactly as it was — see [§4 System Architecture](#4-system-architecture)
-and [§20 Project Structure](#20-project-structure) for why it was archived-in-place rather
-than deleted.
+The original Product CRUD exercise (`/`, `/add`, `/edit/<id>`, `/delete/<id>`) has been fully
+removed — its routes, templates, `products` table and tests are gone. The app is Real Estate
+only: `/` opens the Dashboard directly.
 
 ## 2. Main Features
 
@@ -65,7 +64,7 @@ app.py            Flask routes — thin controllers only
 | Config         | `python-dotenv` 1.1.1 (`.env`, never committed) |
 | Templating     | Jinja2 (bundled with Flask), autoescaping on   |
 | Front end      | Vanilla CSS + JavaScript — no frameworks       |
-| Tests          | pytest (309 tests, against a separate test DB) |
+| Tests          | pytest (against a separate test DB)            |
 
 ## 5. Database Architecture
 
@@ -93,7 +92,8 @@ Key constraints (all enforced in the schema, not just in application code):
   dashboard's and the filters' aggregate queries.
 - `created_at` / `updated_at` timestamps on `agents`, `properties` (with
   `ON UPDATE CURRENT_TIMESTAMP`), `property_images` and `inquiries`.
-- The legacy `products` table (from the original CRUD exercise) is untouched and unrelated.
+- The legacy `products` table (from the original CRUD exercise) has been dropped — `init_db()`
+  runs a one-time `DROP TABLE IF EXISTS products` migration on startup.
 
 A separate `<DB_NAME>_test` database is created for the test suite, so tests never touch demo
 or real data.
@@ -119,6 +119,7 @@ properties      1───N  inquiries
 
 | Area       | Page routes (server-rendered HTML)                                                                                  |
 |------------|------------------------------------------------------------------------------------------------------------------------|
+| Entry point| `GET /` → redirects to `/dashboard`                                                                                 |
 | Dashboard  | `GET /dashboard`                                                                                                       |
 | Properties | `GET /properties/manage` · `GET /properties/view/<id>` · `GET,POST /properties/new` · `GET,POST /properties/<id>/edit` · `POST /properties/<id>/delete` |
 | Agents     | `GET /agents` · `GET /agents/<id>` · `GET,POST /agents/add` · `GET,POST /agents/edit/<id>` · `POST /agents/delete/<id>` |
@@ -131,10 +132,6 @@ A separate, JSON-only property API also exists at `/properties`, `/properties/st
 built in an earlier phase and still fully tested (`tests/test_properties.py`), kept at its own
 paths specifically so it can keep answering in pure JSON while the HTML pages above answer in
 HTML (see the "PHASE 3" comment block in `app.py` for the full reasoning).
-
-The legacy product catalog also still answers at `GET /`, `GET,POST /add`,
-`GET,POST /edit/<id>`, `POST /delete/<id>` — not linked from the nav, but fully working and
-covered by `tests/test_crud.py`.
 
 Every unknown URL returns a friendly **404**; every wrong HTTP method (e.g. `GET` on a
 POST-only delete route) returns a real **405**, both inside the app's own design rather than a
@@ -225,8 +222,6 @@ attributes are a convenience, not the actual guard:
 - **Inquiries** — name/email/phone/message required and length-capped, the same email check,
   the property id checked against real properties, and status forced to `New` on creation and
   restricted to the three known values on edit.
-- **Legacy products** — name/price/description required, price numeric/finite/non-negative and
-  within `DECIMAL(10,2)`.
 
 ## 15. Installation
 
@@ -261,7 +256,8 @@ it unset for anything other than local development on your own machine.
 
 Nothing has to be created by hand. On startup, `app.py` calls `init_db()`, which:
 
-1. Creates the database (`CREATE DATABASE IF NOT EXISTS`) and the legacy `products` table.
+1. Creates the database (`CREATE DATABASE IF NOT EXISTS`) and drops the legacy `products`
+   table if an older database still has it (`DROP TABLE IF EXISTS`, a no-op after the first run).
 2. Calls `real_estate_db.init_real_estate()`, which creates all six real-estate tables
    (`CREATE TABLE IF NOT EXISTS`) and seeds baseline demo data.
 
@@ -278,7 +274,6 @@ duplicates a row:
 To top up an existing database that already has rows, without starting the app:
 
 ```
-python seed.py               # legacy product catalog
 python seed_real_estate.py   # real estate reference/demo data
 ```
 
@@ -295,18 +290,16 @@ flask run               # same app, standard Flask launcher
 python -m pytest -v
 ```
 
-309 tests, run against a separate `<DB_NAME>_test` database so they never touch real or demo
-data:
+Runs against a separate `<DB_NAME>_test` database so tests never touch real or demo data:
 
 | File                              | Covers                                                        |
 |------------------------------------|----------------------------------------------------------------|
-| `test_crud.py` (64)                | Legacy product CRUD, validation, security, error handling      |
-| `test_real_estate_schema.py` (20)  | Schema: tables, keys, constraints, indexes, seed idempotency    |
-| `test_properties.py` (58)          | Property JSON API: CRUD, filters, stats, validation, security  |
-| `test_property_images.py` (34)     | Gallery: image CRUD, ordering, URL validation, cascades         |
-| `test_agents.py` (41)              | Agent CRUD, uniqueness, `SET NULL` on delete, 404/405           |
-| `test_inquiries.py` (65)           | Inquiry CRUD, status pipeline, filters, cascades, 404/405       |
-| `test_dashboard_analytics.py` (27) | Dashboard aggregates against direct MySQL counts                |
+| `test_real_estate_schema.py`       | Schema: tables, keys, constraints, indexes, seed idempotency    |
+| `test_properties.py`               | Property JSON API: CRUD, filters, stats, validation, security  |
+| `test_property_images.py`          | Gallery: image CRUD, ordering, URL validation, cascades         |
+| `test_agents.py`                   | Agent CRUD, uniqueness, `SET NULL` on delete, 404/405           |
+| `test_inquiries.py`                | Inquiry CRUD, status pipeline, filters, cascades, 404/405       |
+| `test_dashboard_analytics.py`      | Dashboard aggregates against direct MySQL counts                |
 
 ## 20. Project Structure
 
@@ -320,15 +313,12 @@ inquiry_queries.py          All SQL for inquiries
 inquiry_validation.py       Server-side validation for inquiries
 analytics_queries.py        Dashboard aggregate queries + chart-shaping helpers
 real_estate_db.py           Real estate schema (DDL) + demo data + idempotent seeding
-seed.py                     Optional: top up the legacy product catalog
 seed_real_estate.py         Optional: top up the real estate reference/demo data
 requirements.txt            Runtime dependencies
 .env                        Local secrets (git-ignored, never committed)
 
 templates/
   base.html                 Shared shell: REAL ESTATE brand, nav, toasts
-  index.html, add.html,
-  edit.html, _product_form.html   Legacy product pages (unlinked, still tested)
   dashboard.html             Dashboard & Analytics
   properties/                Property Management, Details, Add, Edit (+ shared form)
   agents/                    Agent list, Details, Add, Edit (+ shared form)
@@ -347,5 +337,6 @@ _archive/                    Pre-real-estate project files, excluded from git
 
 ---
 
-Built and hardened across 8 phases. This phase (8) audited, cleaned and documented the
-project for training/demo without changing the visual identity or adding new features.
+Built and hardened across 8 phases, then converted to a Real Estate-only application: the
+legacy Product CRUD exercise this project started from was fully removed (routes, templates,
+`products` table and tests) without changing the visual identity or any Real Estate feature.

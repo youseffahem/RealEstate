@@ -306,7 +306,7 @@ def test_get_on_agents_delete_route_is_rejected(client, track_agents):
 
     # Delete is POST only (Phase 8 QA fix): opening it via GET must answer
     # with a real HTTP 405, landing back on the Agents page - not the 302
-    # to the unrelated legacy product catalog it used to fall through to.
+    # to the unrelated dashboard it used to fall through to.
     response = client.get("/agents/delete/" + str(agent_id))
     assert response.status_code == 405
     assert fetch_agent_row(agent_id) is not None
