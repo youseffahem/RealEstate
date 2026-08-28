@@ -1,5 +1,6 @@
 {% extends "base.html" %}
 {% import "_icons.html" as ico %}
+{% import "agents/_agent_card.html" as agent_card_macro %}
 
 {% block title %}Agents · REAL ESTATE{% endblock %}
 
@@ -72,56 +73,30 @@
 
 {% if agents %}
 
+<!-- ===== Gender groups - Male agents first, then Female agents, in the
+       existing card layout, with no visible section label - Male cards
+       simply appear before Female cards, as one continuous grid.
+       Grouping is decided server-side by
+       agent_queries.group_agents_by_gender(); a gender group with zero
+       agents simply renders no grid at all. Kept as two separate grids
+       (not one merged list) so a short last Male row can never share a
+       row with the first Female card - see static/style.css. ===== -->
+
+{% if male_agents %}
 <div class="property-grid agent-grid">
-    {% for agent in agents %}
-    <article class="card property-card agent-card">
-
-        {% if agent.photo_url %}
-        <div class="property-card-media">
-            <img src="{{ agent.photo_url }}" alt="{{ agent.name }}" loading="lazy">
-        </div>
-        {% else %}
-        <div class="property-card-media is-empty" aria-hidden="true">{{ ico.icon('user', 22) }}</div>
-        {% endif %}
-
-        <h2>{{ ico.icon('user', 16) }} <span title="{{ agent.name }}">{{ agent.name }}</span></h2>
-
-        <span class="user-row">
-            {{ ico.icon('mail', 14) }}
-            <a href="mailto:{{ agent.email }}">{{ agent.email }}</a>
-        </span>
-
-        <span class="user-row">
-            {{ ico.icon('phone', 14) }}
-            <a href="tel:{{ agent.phone }}">{{ agent.phone }}</a>
-        </span>
-
-        <span class="user-row row-wrap property-meta">
-            <span class="badge-pill">{{ agent.property_count }} Assigned</span>
-            <span class="badge-pill badge-status-available">{{ agent.available_count }} Available</span>
-            <span class="badge-pill badge-status-sold">{{ agent.sold_count }} Sold</span>
-            <span class="badge-pill badge-status-rented">{{ agent.rented_count }} Rented</span>
-        </span>
-
-        <!-- Actions: VIEW, EDIT and DELETE, always visible and always labelled -->
-        <span class="user-row property-actions">
-            <a href="{{ url_for('agent_detail', id=agent.id) }}" class="btn-icon btn-action"
-               aria-label="View {{ agent.name }}">{{ ico.icon('search', 15) }}<span class="btn-action-label">View</span></a>
-
-            <a href="{{ url_for('agents_edit', id=agent.id) }}" class="btn-icon btn-action btn-edit"
-               aria-label="Edit {{ agent.name }}">{{ ico.icon('pencil', 15) }}<span class="btn-action-label">Edit</span></a>
-
-            <form action="{{ url_for('agents_delete', id=agent.id) }}" method="POST" class="inline-form"
-                  data-delete-form data-item-name="{{ agent.name }}">
-                <button type="submit" class="btn-icon btn-action btn-delete"
-                        aria-label="Delete {{ agent.name }}">{{ ico.icon('trash', 15) }}<span
-                            class="btn-action-label">Delete</span></button>
-            </form>
-        </span>
-
-    </article>
+    {% for agent in male_agents %}
+    {{ agent_card_macro.agent_card(agent) }}
     {% endfor %}
 </div>
+{% endif %}
+
+{% if female_agents %}
+<div class="property-grid agent-grid">
+    {% for agent in female_agents %}
+    {{ agent_card_macro.agent_card(agent) }}
+    {% endfor %}
+</div>
+{% endif %}
 
 {% else %}
 

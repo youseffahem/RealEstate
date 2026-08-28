@@ -156,13 +156,13 @@ DEMO_LOCATIONS = [
     ("North Coast", "Matrouh"),
 ]
 
-# (name, email, phone)
+# (name, email, phone, gender)
 DEMO_AGENTS = [
-    ("Ahmed El-Sayed", "ahmed.elsayed@tantawyrealestate.com", "010-1234-5678"),
-    ("Mona Abdel Rahman", "mona.abdelrahman@tantawyrealestate.com", "011-2345-6789"),
-    ("Youssef Hassan", "youssef.hassan@tantawyrealestate.com", "012-3456-7890"),
-    ("Nourhan Farouk", "nourhan.farouk@tantawyrealestate.com", "015-4567-8901"),
-    ("Karim El-Masry", "karim.elmasry@tantawyrealestate.com", "010-9876-5432"),
+    ("Ahmed El-Sayed", "ahmed.elsayed@tantawyrealestate.com", "010-1234-5678", "Male"),
+    ("Mona Abdel Rahman", "mona.abdelrahman@tantawyrealestate.com", "011-2345-6789", "Female"),
+    ("Youssef Hassan", "youssef.hassan@tantawyrealestate.com", "012-3456-7890", "Male"),
+    ("Nourhan Farouk", "nourhan.farouk@tantawyrealestate.com", "015-4567-8901", "Female"),
+    ("Karim El-Masry", "karim.elmasry@tantawyrealestate.com", "010-9876-5432", "Male"),
 ]
 
 # Every property type and every location is used at least once, and the
@@ -396,10 +396,14 @@ def seed_agents(cursor):
     """Insert any demo agent whose email is not registered yet."""
     cursor.execute("SELECT email FROM agents")
     existing = {row[0] for row in cursor.fetchall()}
-    missing = [(name, email, phone) for name, email, phone in DEMO_AGENTS if email not in existing]
+    missing = [
+        (name, email, phone, gender)
+        for name, email, phone, gender in DEMO_AGENTS
+        if email not in existing
+    ]
     if missing:
         cursor.executemany(
-            "INSERT INTO agents (name, email, phone) VALUES (%s, %s, %s)", missing
+            "INSERT INTO agents (name, email, phone, gender) VALUES (%s, %s, %s, %s)", missing
         )
     return len(missing)
 
@@ -550,6 +554,23 @@ def init_real_estate(connection):
     )
     if cursor.fetchone()[0] == 0:
         cursor.execute("ALTER TABLE agents ADD COLUMN photo_url VARCHAR(500) NULL")
+
+    # Migration: add gender to agents if it doesn't exist yet (same safe,
+    # run-on-every-startup pattern as photo_url above). Added nullable
+    # first, so any agent already in the table is never rejected by the
+    # ALTER itself; every such row is then backfilled to 'Male' - a safe,
+    # deterministic default - before the column is locked down to
+    # NOT NULL, so no existing agent is ever left with a missing or
+    # invalid gender and no agent row is ever deleted or recreated.
+    cursor.execute(
+        "SELECT COUNT(*) FROM information_schema.COLUMNS "
+        "WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME = 'agents' "
+        "AND COLUMN_NAME = 'gender'"
+    )
+    if cursor.fetchone()[0] == 0:
+        cursor.execute("ALTER TABLE agents ADD COLUMN gender ENUM('Male', 'Female') NULL")
+        cursor.execute("UPDATE agents SET gender = 'Male' WHERE gender IS NULL")
+        cursor.execute("ALTER TABLE agents MODIFY COLUMN gender ENUM('Male', 'Female') NOT NULL")
 
     summary = {
         "property_types": seed_property_types(cursor),

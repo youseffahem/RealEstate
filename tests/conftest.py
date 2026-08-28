@@ -205,18 +205,20 @@ def track_properties():
 # `track_agents` fixture.
 # =====================================================================
 
-def insert_agent(name="Test Agent", email=None, phone="010-0000-0000"):
+def insert_agent(name="Test Agent", email=None, phone="010-0000-0000", gender="Male"):
     """Insert one agent row directly (bypassing the API) and return its id.
     A unique default email (based on the id-less insert order) would be
     circular, so callers that create more than one agent in a test should
-    pass a distinct email themselves - agents.email is UNIQUE."""
+    pass a distinct email themselves - agents.email is UNIQUE. gender
+    defaults to "Male" since agents.gender is NOT NULL - pass gender="Female"
+    for a test that specifically needs a female agent."""
     if email is None:
         email = "test.agent.%s@example.com" % id(object())
     connection = app_module.get_connection()
     cursor = connection.cursor()
     cursor.execute(
-        "INSERT INTO agents (name, email, phone) VALUES (%s, %s, %s)",
-        (name, email, phone),
+        "INSERT INTO agents (name, email, phone, gender) VALUES (%s, %s, %s, %s)",
+        (name, email, phone, gender),
     )
     connection.commit()
     new_id = cursor.lastrowid

@@ -15,6 +15,12 @@ EMAIL_MAX_LENGTH = 160   # matches agents.email VARCHAR(160)
 PHONE_MAX_LENGTH = 30    # matches agents.phone VARCHAR(30)
 PHONE_MIN_LENGTH = 6     # a reasonable floor - rejects "1", "abc", etc.
 
+# The only two values agents.gender (ENUM('Male', 'Female')) accepts - kept
+# here as the single source of truth, the same pattern property_validation.py
+# uses for LISTING_TYPES/STATUSES, so the create/edit form's <select> options
+# and this check can never drift apart.
+GENDERS = ("Male", "Female")
+
 # A plain, reasonable email shape check (not a full RFC 5322 parser) -
 # matches what the create/edit form's own type="email" input expects.
 _EMAIL_RE = re.compile(r"^[^@\s]+@[^@\s]+\.[^@\s]+$")
@@ -64,6 +70,14 @@ def validate_agent_payload(form, existing_emails):
     elif len(phone) < PHONE_MIN_LENGTH:
         errors.append("Phone number is too short.")
     cleaned["phone"] = phone
+
+    # ----- gender: required, must be exactly one of GENDERS -----
+    gender = (form.get("gender") or "").strip()
+    if not gender:
+        errors.append("Gender is required.")
+    elif gender not in GENDERS:
+        errors.append("Gender must be one of: " + ", ".join(GENDERS) + ".")
+    cleaned["gender"] = gender
 
     if errors:
         return errors, None

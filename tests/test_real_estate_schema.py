@@ -109,6 +109,50 @@ def test_agents_email_is_unique():
     assert rows[0][0] == 1
 
 
+def test_agents_gender_column_only_allows_male_or_female():
+    rows = _query(
+        """
+        SELECT COLUMN_TYPE, IS_NULLABLE FROM information_schema.COLUMNS
+        WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME = 'agents'
+          AND COLUMN_NAME = 'gender'
+        """
+    )
+    assert len(rows) == 1, "agents.gender must exist"
+    column_type, is_nullable = rows[0]
+    assert "'Male'" in column_type
+    assert "'Female'" in column_type
+    assert is_nullable == "NO"
+
+
+def test_every_seeded_agent_has_a_valid_gender():
+    rows = _query("SELECT gender FROM agents")
+    assert rows, "there should be at least one seeded agent"
+    for (gender,) in rows:
+        assert gender in ("Male", "Female")
+
+
+def test_inserting_an_agent_with_an_invalid_gender_is_rejected_by_the_database():
+    import mysql.connector
+
+    connection = app_module.get_connection()
+    cursor = connection.cursor()
+    try:
+        cursor.execute(
+            "INSERT INTO agents (name, email, phone, gender) "
+            "VALUES ('Invalid Gender Test', 'invalid.gender.test@example.com', '010-0000-0000', 'Other')"
+        )
+        connection.commit()
+        raised = False
+    except mysql.connector.Error:
+        connection.rollback()
+        raised = True
+    finally:
+        cursor.close()
+        connection.close()
+
+    assert raised, "an out-of-range gender should violate the agents.gender ENUM"
+
+
 def test_listing_type_column_only_allows_for_sale_or_for_rent():
     rows = _query(
         """

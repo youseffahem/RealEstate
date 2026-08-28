@@ -21,7 +21,7 @@ import property_queries
 # one query instead of N+1 follow-up queries per agent.
 _AGENT_BASE_QUERY = """
     SELECT
-        a.id, a.name, a.email, a.phone, a.photo_url, a.created_at,
+        a.id, a.name, a.email, a.phone, a.gender, a.photo_url, a.created_at,
         COUNT(p.id) AS property_count,
         SUM(p.status = 'Available') AS available_count,
         SUM(p.status = 'Reserved') AS reserved_count,
@@ -60,7 +60,7 @@ def get_all_agents(connection, filters=None):
     sql = _AGENT_BASE_QUERY
     if clauses:
         sql += " WHERE " + " AND ".join(clauses)
-    sql += " GROUP BY a.id, a.name, a.email, a.phone, a.photo_url, a.created_at ORDER BY a.name"
+    sql += " GROUP BY a.id, a.name, a.email, a.phone, a.gender, a.photo_url, a.created_at ORDER BY a.name"
 
     cursor = connection.cursor(dictionary=True)
     cursor.execute(sql, params)
@@ -71,7 +71,10 @@ def get_all_agents(connection, filters=None):
 
 def get_agent_by_id(connection, agent_id):
     """One agent, with their property counts, or None."""
-    sql = _AGENT_BASE_QUERY + " WHERE a.id = %s GROUP BY a.id, a.name, a.email, a.phone, a.photo_url, a.created_at"
+    sql = (
+        _AGENT_BASE_QUERY
+        + " WHERE a.id = %s GROUP BY a.id, a.name, a.email, a.phone, a.gender, a.photo_url, a.created_at"
+    )
     cursor = connection.cursor(dictionary=True)
     cursor.execute(sql, (agent_id,))
     row = cursor.fetchone()
@@ -105,8 +108,8 @@ def create_agent(connection, data):
     """Insert a new agent from a cleaned payload. Returns the new id."""
     cursor = connection.cursor()
     cursor.execute(
-        "INSERT INTO agents (name, email, phone, photo_url) VALUES (%s, %s, %s, %s)",
-        (data["name"], data["email"], data["phone"], data.get("photo_url")),
+        "INSERT INTO agents (name, email, phone, gender, photo_url) VALUES (%s, %s, %s, %s, %s)",
+        (data["name"], data["email"], data["phone"], data["gender"], data.get("photo_url")),
     )
     connection.commit()
     new_id = cursor.lastrowid
@@ -119,13 +122,26 @@ def update_agent(connection, agent_id, data):
     (0 means the id did not exist)."""
     cursor = connection.cursor()
     cursor.execute(
-        "UPDATE agents SET name = %s, email = %s, phone = %s, photo_url = %s WHERE id = %s",
-        (data["name"], data["email"], data["phone"], data.get("photo_url"), agent_id),
+        "UPDATE agents SET name = %s, email = %s, phone = %s, gender = %s, photo_url = %s WHERE id = %s",
+        (data["name"], data["email"], data["phone"], data["gender"], data.get("photo_url"), agent_id),
     )
     connection.commit()
     updated = cursor.rowcount
     cursor.close()
     return updated
+
+
+def group_agents_by_gender(agents):
+    """Split a list of agent dicts (as returned by get_all_agents()) into
+    (male_agents, female_agents), preserving their existing relative order.
+
+    Pure and DB-free, so the Agents page grouping rule - Male agents
+    displayed before Female agents, in their own section, with an empty
+    gender group simply not shown at all - can be unit-tested directly,
+    without needing to touch the database or the seeded agent catalog."""
+    male_agents = [agent for agent in agents if agent.get("gender") == "Male"]
+    female_agents = [agent for agent in agents if agent.get("gender") == "Female"]
+    return male_agents, female_agents
 
 
 def delete_agent(connection, agent_id):

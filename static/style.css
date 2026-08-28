@@ -4245,3 +4245,68 @@ body {
     max-width: 100%;
     box-sizing: border-box;
 }
+
+
+/* ================================================================
+   AGENTS PAGE - GENDER GROUPS
+   ----------------------------------------------------------------
+   agents/index.html now renders two `.property-grid.agent-grid`
+   containers (Male agents, then Female agents - an empty group simply
+   isn't rendered). The agent card itself is still exactly `.property-card`
+   / `.agent-card` - untouched. Only the grid *algorithm* changes here,
+   and only for `.agent-grid`.
+
+   `.property-grid` uses CSS Grid (auto-fill/minmax), which - by design -
+   left-aligns a short last row instead of centering it. Flexbox is used
+   here instead: `flex-wrap` + `justify-content: center` centers every
+   wrapped line independently, so an incomplete row of agent cards (1, 2
+   or 3 cards) is always centered on its own, not just the grid as a
+   whole. This rule wins over `.property-grid`'s `display: grid` by
+   appearing later in the cascade at the same specificity - nothing about
+   `.property-grid`/`.property-card` themselves is changed, so the
+   Properties and Inquiries pages (and any other `.property-grid` use)
+   are unaffected. */
+.agent-grid {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+}
+
+/* Four cards per row on desktop: each card grows/shrinks from a 300px
+   base (matching .property-grid's own minmax(300px, ...) sizing) but is
+   capped at a quarter of the row, minus its share of the 20px gaps. */
+.agent-grid .agent-card {
+    flex: 1 1 300px;
+    max-width: calc(25% - 15px);
+}
+
+/* Tablet: two per row - same breakpoint .form-grid already collapses at. */
+@media (max-width: 980px) {
+    .agent-grid .agent-card {
+        max-width: calc(50% - 10px);
+    }
+}
+
+/* Mobile: one per row, full width - same breakpoint .detail-grid already
+   collapses at. No horizontal overflow at any width in between. */
+@media (max-width: 640px) {
+    .agent-grid .agent-card {
+        max-width: 100%;
+    }
+}
+
+/* Male and Female agents are still two separate .agent-grid containers
+   (so a short last Male row can never share a row with the first Female
+   card), and neither one carries a visible heading. Left alone, the gap
+   between them would be just the last card's own 20px margin-bottom -
+   noticeably tighter than the 40px gap a row wrap gets *inside* one
+   group (that same 20px card margin, plus this grid's own 20px `gap`,
+   inherited from .property-grid, which only applies *within* a single
+   grid). Adding the missing 20px here, only on a second .agent-grid that
+   immediately follows another one, makes the Male -> Female join match
+   that same row-to-row rhythm exactly - so the whole page reads as one
+   continuous grid, Male cards simply appearing before Female ones, with
+   normal, compact, consistent spacing throughout. */
+.agent-grid + .agent-grid {
+    margin-top: 20px;
+}

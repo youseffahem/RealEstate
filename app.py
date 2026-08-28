@@ -741,7 +741,7 @@ def properties_delete_page(id):
 # deleting an agent here never deletes a property - it only clears that
 # property's agent_id, and the property keeps working normally.
 
-_EMPTY_AGENT_FORM = {"name": "", "email": "", "phone": "", "photo_url": ""}
+_EMPTY_AGENT_FORM = {"name": "", "email": "", "phone": "", "gender": "", "photo_url": ""}
 
 
 def get_agent_form_data():
@@ -750,6 +750,7 @@ def get_agent_form_data():
         "name": request.form.get("name", ""),
         "email": request.form.get("email", ""),
         "phone": request.form.get("phone", ""),
+        "gender": request.form.get("gender", ""),
     }
 
 
@@ -771,6 +772,7 @@ def _render_agent_form(template, form_action, submit_label, agent_data):
         form_action=form_action,
         submit_label=submit_label,
         agent=agent_data,
+        genders=agent_validation.GENDERS,
     )
 
 
@@ -788,7 +790,12 @@ def agents_list():
         app.logger.error("Database error while listing agents: %s", error)
         flash("Could not load the agents. Please try again later.", "error")
 
-    return render_template("agents/index.html", agents=agents, stats=stats, filters=request.args)
+    # Agents page grouping: Male agents shown first, then Female agents,
+    # each in their own section - see agent_queries.group_agents_by_gender().
+    male_agents, female_agents = agent_queries.group_agents_by_gender(agents)
+
+    return render_template("agents/index.html", agents=agents, male_agents=male_agents,
+                            female_agents=female_agents, stats=stats, filters=request.args)
 
 
 # ===== Agent Details =====

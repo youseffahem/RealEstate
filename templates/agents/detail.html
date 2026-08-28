@@ -29,6 +29,7 @@
     {% endif %}
 
     <span class="user-row row-wrap property-badges">
+        <span class="badge-pill">{{ agent.gender }}</span>
         <span class="badge-pill">{{ agent.property_count }} Assigned</span>
         <span class="badge-pill badge-status-available">{{ agent.available_count }} Available</span>
         <span class="badge-pill badge-status-reserved">{{ agent.reserved_count }} Reserved</span>
@@ -37,6 +38,11 @@
     </span>
 
     <dl class="detail-grid">
+
+        <div class="detail-field">
+            <dt>Gender</dt>
+            <dd>{{ agent.gender }}</dd>
+        </div>
 
         <div class="detail-field">
             <dt>Email</dt>

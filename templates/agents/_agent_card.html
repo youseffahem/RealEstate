@@ -1,0 +1,56 @@
+{# Shared agent card markup, used by both gender groups on agents/index.html
+   (Male agents, then Female agents - see agent_queries.group_agents_by_gender()
+   and app.py:agents_list()). Kept as a macro instead of copy-pasting the card
+   twice, so there is exactly one place that defines what an agent card looks
+   like - the same card that already existed before grouping, unchanged. #}
+{% import "_icons.html" as ico %}
+
+{% macro agent_card(agent) %}
+<article class="card property-card agent-card">
+
+    {% if agent.photo_url %}
+    <div class="property-card-media">
+        <img src="{{ agent.photo_url }}" alt="{{ agent.name }}" loading="lazy">
+    </div>
+    {% else %}
+    <div class="property-card-media is-empty" aria-hidden="true">{{ ico.icon('user', 22) }}</div>
+    {% endif %}
+
+    <h2>{{ ico.icon('user', 16) }} <span title="{{ agent.name }}">{{ agent.name }}</span></h2>
+
+    <span class="user-row">
+        {{ ico.icon('mail', 14) }}
+        <a href="mailto:{{ agent.email }}">{{ agent.email }}</a>
+    </span>
+
+    <span class="user-row">
+        {{ ico.icon('phone', 14) }}
+        <a href="tel:{{ agent.phone }}">{{ agent.phone }}</a>
+    </span>
+
+    <span class="user-row row-wrap property-meta">
+        <span class="badge-pill">{{ agent.gender }}</span>
+        <span class="badge-pill">{{ agent.property_count }} Assigned</span>
+        <span class="badge-pill badge-status-available">{{ agent.available_count }} Available</span>
+        <span class="badge-pill badge-status-sold">{{ agent.sold_count }} Sold</span>
+        <span class="badge-pill badge-status-rented">{{ agent.rented_count }} Rented</span>
+    </span>
+
+    <!-- Actions: VIEW, EDIT and DELETE, always visible and always labelled -->
+    <span class="user-row property-actions">
+        <a href="{{ url_for('agent_detail', id=agent.id) }}" class="btn-icon btn-action"
+           aria-label="View {{ agent.name }}">{{ ico.icon('search', 15) }}<span class="btn-action-label">View</span></a>
+
+        <a href="{{ url_for('agents_edit', id=agent.id) }}" class="btn-icon btn-action btn-edit"
+           aria-label="Edit {{ agent.name }}">{{ ico.icon('pencil', 15) }}<span class="btn-action-label">Edit</span></a>
+
+        <form action="{{ url_for('agents_delete', id=agent.id) }}" method="POST" class="inline-form"
+              data-delete-form data-item-name="{{ agent.name }}">
+            <button type="submit" class="btn-icon btn-action btn-delete"
+                    aria-label="Delete {{ agent.name }}">{{ ico.icon('trash', 15) }}<span
+                        class="btn-action-label">Delete</span></button>
+        </form>
+    </span>
+
+</article>
+{% endmacro %}
