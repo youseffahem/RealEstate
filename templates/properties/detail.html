@@ -30,6 +30,14 @@
 
     <span class="property-price price-value">${{ property.price|money }}</span>
 
+    <!-- ===== Phase 6: inquiry count + entry point into the inquiry form,
+           with this property preselected via ?property_id=<id> ===== -->
+    <span class="user-row row-wrap property-meta">
+        <span class="user-row">{{ ico.icon('mail', 14) }} {{ inquiry_count }} inquir{{ 'y' if inquiry_count == 1 else 'ies' }}</span>
+        <a href="{{ url_for('inquiries_add', property_id=property.id) }}" class="btn-link-primary">
+            {{ ico.icon('mail', 15) }} Inquire about this property</a>
+    </span>
+
     <dl class="detail-grid">
 
         <div class="detail-field">

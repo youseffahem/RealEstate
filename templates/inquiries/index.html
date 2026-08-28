@@ -1,0 +1,216 @@
+{% extends "base.html" %}
+{% import "_icons.html" as ico %}
+
+{% block title %}Inquiries · REAL ESTATE{% endblock %}
+
+{# .shell-wide: full width up to 1320px, same column Properties and Agents use. #}
+{% block shell_class %}shell-wide{% endblock %}
+
+{% block heading %}Inquiries / Leads{% endblock %}
+{% block subtitle %}Review customer inquiries, track their status and follow up with the right agent.{% endblock %}
+
+{% block content %}
+
+<!-- ===== Live statistics, read from inquiry_queries.get_inquiry_stats() ===== -->
+<section class="user-row stats-row" aria-label="Inquiries overview">
+
+    <article class="card user-info col-stat stat-card stat-accent-cyan">
+        <h2 class="stat-head">
+            <span class="stat-icon">{{ ico.icon('mail', 18) }}</span>
+            <span class="stat-value">{{ stats.total }}</span>
+        </h2>
+        <span class="user-date stat-label">Total inquiries</span>
+    </article>
+
+    <article class="card user-info col-stat stat-card stat-accent-violet">
+        <h2 class="stat-head">
+            <span class="stat-icon">{{ ico.icon('sparkle', 18) }}</span>
+            <span class="stat-value">{{ stats.new }}</span>
+        </h2>
+        <span class="user-date stat-label">New</span>
+    </article>
+
+    <article class="card user-info col-stat stat-card stat-accent-pink">
+        <h2 class="stat-head">
+            <span class="stat-icon">{{ ico.icon('phone', 18) }}</span>
+            <span class="stat-value">{{ stats.contacted }}</span>
+        </h2>
+        <span class="user-date stat-label">Contacted</span>
+    </article>
+
+    <article class="card user-info col-stat stat-card stat-accent-success">
+        <h2 class="stat-head">
+            <span class="stat-icon">{{ ico.icon('check', 18) }}</span>
+            <span class="stat-value">{{ stats.closed }}</span>
+        </h2>
+        <span class="user-date stat-label">Closed</span>
+    </article>
+
+    <article class="card user-info col-stat stat-card stat-accent-purple">
+        <h2 class="stat-head">
+            <span class="stat-icon">{{ ico.icon('calendar', 18) }}</span>
+            <span class="stat-value">{{ stats.today }}</span>
+        </h2>
+        <span class="user-date stat-label">Today</span>
+    </article>
+
+</section>
+
+<!-- ===== Search & filters - connected to inquiry_queries.get_all_inquiries() ===== -->
+<section class="card">
+
+    <h2>{{ ico.icon('mail') }} Inquiries <span class="badge" data-count>{{ inquiries|length }}</span></h2>
+
+    <form method="GET" action="{{ url_for('inquiries_list') }}" class="filter-bar user-row row-wrap">
+
+        <span class="user-info field-grow">
+            <input type="search" name="q" value="{{ filters.get('q', '') }}"
+                   placeholder="Search by name, email, phone, property or message…"
+                   aria-label="Search inquiries" autocomplete="off">
+        </span>
+
+        <select name="status" aria-label="Filter by status">
+            <option value="">All statuses</option>
+            {% for s in statuses %}
+            <option value="{{ s }}" {% if filters.get('status') == s %}selected{% endif %}>{{ s }}</option>
+            {% endfor %}
+        </select>
+
+        <select name="property_id" aria-label="Filter by property">
+            <option value="">All properties</option>
+            {% for property in properties %}
+            <option value="{{ property.id }}" {% if filters.get('property_id') == property.id|string %}selected{% endif %}>
+                {{ property.title }}</option>
+            {% endfor %}
+        </select>
+
+        <select name="agent_id" aria-label="Filter by agent">
+            <option value="">All agents</option>
+            {% for agent in agents %}
+            <option value="{{ agent.id }}" {% if filters.get('agent_id') == agent.id|string %}selected{% endif %}>
+                {{ agent.name }}</option>
+            {% endfor %}
+        </select>
+
+        <span class="input-group">
+            <button type="submit">{{ ico.icon('search', 15) }} Search</button>
+        </span>
+
+        {% if filters %}
+        <a href="{{ url_for('inquiries_list') }}" class="btn-link-secondary btn-cancel">{{ ico.icon('close', 13) }}
+            Clear</a>
+        {% endif %}
+
+        <span class="user-info" aria-hidden="true"></span>
+
+        <a href="{{ url_for('inquiries_add') }}" class="btn-link-primary">{{ ico.icon('plus', 15) }} New&nbsp;Inquiry</a>
+
+    </form>
+
+</section>
+
+{% if inquiries %}
+
+<div class="property-grid">
+    {% for inquiry in inquiries %}
+    <article class="card property-card">
+
+        <h2>{{ ico.icon('user', 16) }} <span title="{{ inquiry.name }}">{{ inquiry.name }}</span></h2>
+
+        <span class="user-row row-wrap property-badges">
+            <span class="badge-pill badge-status-{{ inquiry.status|lower }}">{{ inquiry.status }}</span>
+            <span class="user-date">{{ inquiry.created_at.strftime('%b %d, %Y') if inquiry.created_at else '—' }}</span>
+        </span>
+
+        <span class="user-row">
+            {{ ico.icon('mail', 14) }}
+            <a href="mailto:{{ inquiry.email }}">{{ inquiry.email }}</a>
+        </span>
+
+        <span class="user-row">
+            {{ ico.icon('phone', 14) }}
+            <a href="tel:{{ inquiry.phone }}">{{ inquiry.phone }}</a>
+        </span>
+
+        <span class="user-row">
+            {{ ico.icon('home', 14) }}
+            <span title="{{ inquiry.property_title }}">{{ inquiry.property_title|truncate(38, True, '…') }}</span>
+        </span>
+
+        <span class="user-row">
+            {{ ico.icon('map-pin', 14) }}
+            <span class="user-date">{{ inquiry.location_name }}, {{ inquiry.location_city }}</span>
+        </span>
+
+        <span class="user-row property-agent">
+            {{ ico.icon('user', 14) }}
+            {% if inquiry.agent_name %}Agent: {{ inquiry.agent_name }}{% else %}No agent assigned{% endif %}
+        </span>
+
+        <p class="submission-message inquiry-message-preview">{{ inquiry.message|truncate(110, True, '…') }}</p>
+
+        <!-- Actions: VIEW, EDIT and DELETE, always visible and always labelled -->
+        <span class="user-row property-actions">
+            <a href="{{ url_for('inquiry_detail', id=inquiry.id) }}" class="btn-icon btn-action"
+               aria-label="View inquiry from {{ inquiry.name }}">{{ ico.icon('search', 15) }}<span class="btn-action-label">View</span></a>
+
+            <a href="{{ url_for('inquiries_edit', id=inquiry.id) }}" class="btn-icon btn-action btn-edit"
+               aria-label="Edit inquiry from {{ inquiry.name }}">{{ ico.icon('pencil', 15) }}<span class="btn-action-label">Edit</span></a>
+
+            <form action="{{ url_for('inquiries_delete', id=inquiry.id) }}" method="POST" class="inline-form"
+                  data-delete-form data-item-name="the inquiry from {{ inquiry.name }}">
+                <button type="submit" class="btn-icon btn-action btn-delete"
+                        aria-label="Delete inquiry from {{ inquiry.name }}">{{ ico.icon('trash', 15) }}<span
+                            class="btn-action-label">Delete</span></button>
+            </form>
+        </span>
+
+    </article>
+    {% endfor %}
+</div>
+
+{% else %}
+
+<!-- Empty state: either there are no inquiries at all, or this search/filter combination has no matches -->
+<div class="submission-message">
+    <span class="user-row row-wrap">
+        {{ ico.icon('database', 22) }}
+        <span class="user-info">
+            {% if filters %}
+            <span class="user-name">No matching inquiries found.</span>
+            <span>Try a different search or filter.</span>
+            {% else %}
+            <span class="user-name">No inquiries yet.</span>
+            <span>Inquiries sent from a property's details page will show up here.</span>
+            {% endif %}
+        </span>
+        {% if filters %}
+        <span class="input-group">
+            <a href="{{ url_for('inquiries_list') }}" class="btn-link-secondary btn-cancel">{{ ico.icon('close', 14) }}
+                Clear search &amp; filters</a>
+        </span>
+        {% endif %}
+    </span>
+</div>
+
+{% endif %}
+
+{% endblock %}
+
+{% block dialogs %}
+<!-- ===== Delete confirmation ===== -->
+<dialog class="card" data-delete-dialog aria-labelledby="delete-dialog-title">
+    <h2 id="delete-dialog-title">{{ ico.icon('trash', 18) }} Delete inquiry?</h2>
+
+    <p class="submission-message">
+        Are you sure you want to delete <strong data-delete-name></strong>?
+        This action cannot be undone. The related property and agent are never affected.
+    </p>
+
+    <span class="input-group">
+        <button type="button" class="btn-cancel" data-dialog-cancel>Cancel</button>
+        <span class="user-info" aria-hidden="true"></span>
+        <button type="button" class="btn-danger" data-dialog-confirm>Delete inquiry</button>
+    </span>
+</dialog>
+{% endblock %}

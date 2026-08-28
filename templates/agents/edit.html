@@ -1,0 +1,13 @@
+{% extends "base.html" %}
+
+{% block title %}Edit {{ agent.name }} · REAL ESTATE{% endblock %}
+
+{# .shell-form: the same narrower column the property create/edit pages use. #}
+{% block shell_class %}shell-form{% endblock %}
+
+{% block heading %}Edit Agent{% endblock %}
+{% block subtitle %}Update this agent's contact details.{% endblock %}
+
+{% block content %}
+{% include "agents/_agent_form.html" %}
+{% endblock %}

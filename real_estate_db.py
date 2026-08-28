@@ -279,8 +279,70 @@ DEMO_PROPERTIES = [
 
 # Each seeded property gets two placeholder gallery slots (no image files are
 # generated in this phase - image_url stays NULL, ready for a future upload
-# feature to fill in).
+# feature to fill in). Kept as the fallback for any demo property added to
+# DEMO_PROPERTIES without a matching entry in DEMO_PROPERTY_IMAGES below.
 IMAGE_SLOTS_PER_PROPERTY = 2
+
+# (property_title -> ordered list of image URLs) - the Phase 5 fix for the
+# empty property image containers. Every URL is a stable, direct HTTPS link
+# to the Unsplash CDN (images.unsplash.com), chosen and hand-verified to
+# match that property's own type (Villa/Apartment/Office/Shop/Chalet/Land/
+# Duplex/House) - never a random unrelated photo. No image files are
+# generated or stored locally; this only ever populates the existing
+# property_images.image_url column.
+DEMO_PROPERTY_IMAGES = {
+    "Luxury Villa in New Cairo": [
+        "https://images.unsplash.com/photo-1613977257363-707ba9348227?auto=format&fit=crop&w=1200&q=80",
+        "https://images.unsplash.com/photo-1613490493576-7fde63acd811?auto=format&fit=crop&w=1200&q=80",
+        "https://images.unsplash.com/photo-1512917774080-9991f1c4c750?auto=format&fit=crop&w=1200&q=80",
+    ],
+    "Modern Apartment in Maadi": [
+        "https://images.unsplash.com/photo-1560448204-e02f11c3d0e2?auto=format&fit=crop&w=1200&q=80",
+        "https://images.unsplash.com/photo-1502672260266-1c1ef2d93688?auto=format&fit=crop&w=1200&q=80",
+    ],
+    "Commercial Office in New Capital": [
+        "https://images.unsplash.com/photo-1497366216548-37526070297c?auto=format&fit=crop&w=1200&q=80",
+        "https://images.unsplash.com/photo-1497366811353-6870744d04b2?auto=format&fit=crop&w=1200&q=80",
+    ],
+    "Beach Chalet in North Coast": [
+        "https://images.unsplash.com/photo-1520250497591-112f2f40a3f4?auto=format&fit=crop&w=1200&q=80",
+        "https://images.unsplash.com/photo-1568605114967-8130f3a36994?auto=format&fit=crop&w=1200&q=80",
+    ],
+    "Retail Shop in Sheikh Zayed": [
+        "https://images.unsplash.com/photo-1441986300917-64674bd600d8?auto=format&fit=crop&w=1200&q=80",
+        "https://images.unsplash.com/photo-1441984904996-e0b6ba687e04?auto=format&fit=crop&w=1200&q=80",
+    ],
+    "Residential Duplex in 6th of October": [
+        "https://images.unsplash.com/photo-1580587771525-78b9dba3b914?auto=format&fit=crop&w=1200&q=80",
+        "https://images.unsplash.com/photo-1494526585095-c41746248156?auto=format&fit=crop&w=1200&q=80",
+    ],
+    "Family House in Nasr City": [
+        "https://images.unsplash.com/photo-1564013799919-ab600027ffc6?auto=format&fit=crop&w=1200&q=80",
+        "https://images.unsplash.com/photo-1600585154340-be6161a56a0c?auto=format&fit=crop&w=1200&q=80",
+    ],
+    "Investment Land Plot in New Capital": [
+        "https://images.unsplash.com/photo-1500382017468-9049fed747ef?auto=format&fit=crop&w=1200&q=80",
+    ],
+    "Cozy Studio Apartment in Alexandria": [
+        "https://images.unsplash.com/photo-1502672260266-1c1ef2d93688?auto=format&fit=crop&w=1200&q=80",
+    ],
+    "Garden Villa in Sheikh Zayed": [
+        "https://images.unsplash.com/photo-1613490493576-7fde63acd811?auto=format&fit=crop&w=1200&q=80",
+        "https://images.unsplash.com/photo-1613977257363-707ba9348227?auto=format&fit=crop&w=1200&q=80",
+    ],
+    "Downtown Office Suite in Maadi": [
+        "https://images.unsplash.com/photo-1497366811353-6870744d04b2?auto=format&fit=crop&w=1200&q=80",
+        "https://images.unsplash.com/photo-1497366216548-37526070297c?auto=format&fit=crop&w=1200&q=80",
+    ],
+    "Elegant Duplex in New Cairo": [
+        "https://images.unsplash.com/photo-1494526585095-c41746248156?auto=format&fit=crop&w=1200&q=80",
+        "https://images.unsplash.com/photo-1580587771525-78b9dba3b914?auto=format&fit=crop&w=1200&q=80",
+    ],
+    "Seasonal Chalet Rental in North Coast": [
+        "https://images.unsplash.com/photo-1568605114967-8130f3a36994?auto=format&fit=crop&w=1200&q=80",
+        "https://images.unsplash.com/photo-1520250497591-112f2f40a3f4?auto=format&fit=crop&w=1200&q=80",
+    ],
+}
 
 # (property_title, name, email, phone, message, status)
 DEMO_INQUIRIES = [
@@ -389,10 +451,20 @@ def seed_properties(cursor):
         )
         property_ids_by_title[item["title"]] = cursor.lastrowid
 
+    # Real, type-matched image URLs for every demo property (see
+    # DEMO_PROPERTY_IMAGES above) - any future demo property added without
+    # a matching entry there still gets the old empty placeholder slots
+    # instead of failing to seed at all.
     image_rows = []
-    for property_id in property_ids_by_title.values():
-        for sort_order in range(IMAGE_SLOTS_PER_PROPERTY):
-            image_rows.append((property_id, None, sort_order))
+    for item in DEMO_PROPERTIES:
+        property_id = property_ids_by_title[item["title"]]
+        urls = DEMO_PROPERTY_IMAGES.get(item["title"])
+        if urls:
+            for sort_order, url in enumerate(urls):
+                image_rows.append((property_id, url, sort_order))
+        else:
+            for sort_order in range(IMAGE_SLOTS_PER_PROPERTY):
+                image_rows.append((property_id, None, sort_order))
     cursor.executemany(
         "INSERT INTO property_images (property_id, image_url, sort_order) VALUES (%s, %s, %s)",
         image_rows,
@@ -411,6 +483,54 @@ def seed_properties(cursor):
     )
 
     return len(property_ids_by_title), len(image_rows), len(inquiry_rows)
+
+
+def backfill_demo_property_images(cursor):
+    """Fix demo properties whose property_images rows were seeded with a
+    NULL image_url before DEMO_PROPERTY_IMAGES existed (Phase 4 seeded two
+    empty placeholder rows per property - see the old IMAGE_SLOTS_PER_
+    PROPERTY loop this replaced). seed_properties() above only ever runs
+    once, while the `properties` table is still empty, so an installation
+    that already has its demo rows would otherwise keep the empty
+    placeholders forever. This runs on every startup instead, and is safe
+    to run every time:
+
+    - only a property whose title matches a known demo title is touched -
+      a real user's own property is never modified;
+    - only a property with zero *real* images is touched - once it has
+      one, this is a permanent no-op for it, even if the user then edits
+      or removes those images themselves;
+    - it replaces (delete + insert), it never appends, so it can never
+      produce a duplicate row for the same property.
+
+    Returns how many properties were fixed.
+    """
+    fixed = 0
+    for title, urls in DEMO_PROPERTY_IMAGES.items():
+        cursor.execute("SELECT id FROM properties WHERE title = %s LIMIT 1", (title,))
+        row = cursor.fetchone()
+        if not row:
+            continue
+        property_id = row[0]
+
+        cursor.execute(
+            """
+            SELECT COUNT(*) FROM property_images
+            WHERE property_id = %s AND image_url IS NOT NULL AND image_url != ''
+            """,
+            (property_id,),
+        )
+        if cursor.fetchone()[0] > 0:
+            continue
+
+        cursor.execute("DELETE FROM property_images WHERE property_id = %s", (property_id,))
+        rows = [(property_id, url, sort_order) for sort_order, url in enumerate(urls)]
+        cursor.executemany(
+            "INSERT INTO property_images (property_id, image_url, sort_order) VALUES (%s, %s, %s)",
+            rows,
+        )
+        fixed += 1
+    return fixed
 
 
 def init_real_estate(connection):
@@ -432,6 +552,7 @@ def init_real_estate(connection):
     summary["properties"] = properties
     summary["property_images"] = images
     summary["inquiries"] = inquiries
+    summary["property_images_fixed"] = backfill_demo_property_images(cursor)
 
     connection.commit()
     cursor.close()

@@ -1,0 +1,13 @@
+{% extends "base.html" %}
+
+{% block title %}Add Agent · REAL ESTATE{% endblock %}
+
+{# .shell-form: the same narrower column the property create/edit pages use. #}
+{% block shell_class %}shell-form{% endblock %}
+
+{% block heading %}Add Agent{% endblock %}
+{% block subtitle %}Register a new agent for your team.{% endblock %}
+
+{% block content %}
+{% include "agents/_agent_form.html" %}
+{% endblock %}

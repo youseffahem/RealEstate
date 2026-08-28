@@ -242,3 +242,143 @@ def track_properties():
     yield created
     for property_id in created:
         delete_property_row(property_id)
+
+
+# =====================================================================
+# Agents (Phase 5) helpers
+#
+# Same rule as the property helpers above: never wipe the whole `agents`
+# table (test_real_estate_schema.py asserts 4-6 seeded agents), only ever
+# insert/delete exactly the rows a test itself created - see the
+# `track_agents` fixture.
+# =====================================================================
+
+def insert_agent(name="Test Agent", email=None, phone="010-0000-0000"):
+    """Insert one agent row directly (bypassing the API) and return its id.
+    A unique default email (based on the id-less insert order) would be
+    circular, so callers that create more than one agent in a test should
+    pass a distinct email themselves - agents.email is UNIQUE."""
+    if email is None:
+        email = "test.agent.%s@example.com" % id(object())
+    connection = app_module.get_connection()
+    cursor = connection.cursor()
+    cursor.execute(
+        "INSERT INTO agents (name, email, phone) VALUES (%s, %s, %s)",
+        (name, email, phone),
+    )
+    connection.commit()
+    new_id = cursor.lastrowid
+    cursor.close()
+    connection.close()
+    return new_id
+
+
+def fetch_agent_row(agent_id):
+    connection = app_module.get_connection()
+    cursor = connection.cursor(dictionary=True)
+    cursor.execute("SELECT * FROM agents WHERE id = %s", (agent_id,))
+    row = cursor.fetchone()
+    cursor.close()
+    connection.close()
+    return row
+
+
+def delete_agent_row(agent_id):
+    connection = app_module.get_connection()
+    cursor = connection.cursor()
+    cursor.execute("DELETE FROM agents WHERE id = %s", (agent_id,))
+    connection.commit()
+    cursor.close()
+    connection.close()
+
+
+def count_agents():
+    connection = app_module.get_connection()
+    cursor = connection.cursor()
+    cursor.execute("SELECT COUNT(*) FROM agents")
+    total = cursor.fetchone()[0]
+    cursor.close()
+    connection.close()
+    return total
+
+
+@pytest.fixture()
+def track_agents():
+    """Any agent id a test creates (directly or through the UI) is deleted
+    again at teardown, so the seeded agents - and the counts
+    test_real_estate_schema.py asserts - are never permanently changed by
+    running the CRUD tests. Usage: track_agents.append(id). Deleting an id
+    twice (e.g. a test that already deletes it itself) is a harmless
+    no-op."""
+    created = []
+    yield created
+    for agent_id in created:
+        delete_agent_row(agent_id)
+
+
+# =====================================================================
+# Inquiries (Phase 6) helpers
+#
+# Same rule as the property/agent helpers above: never wipe the whole
+# `inquiries` table (the demo seed has its own rows), only ever
+# insert/delete exactly the rows a test itself created - see the
+# `track_inquiries` fixture.
+# =====================================================================
+
+def insert_inquiry(property_id, name="Test Inquirer", email="test.inquirer@example.com",
+                    phone="010-0000-1111", message="Is this still available?", status="New"):
+    """Insert one inquiry row directly (bypassing the API) and return its id."""
+    connection = app_module.get_connection()
+    cursor = connection.cursor()
+    cursor.execute(
+        "INSERT INTO inquiries (property_id, name, email, phone, message, status) "
+        "VALUES (%s, %s, %s, %s, %s, %s)",
+        (property_id, name, email, phone, message, status),
+    )
+    connection.commit()
+    new_id = cursor.lastrowid
+    cursor.close()
+    connection.close()
+    return new_id
+
+
+def fetch_inquiry_row(inquiry_id):
+    connection = app_module.get_connection()
+    cursor = connection.cursor(dictionary=True)
+    cursor.execute("SELECT * FROM inquiries WHERE id = %s", (inquiry_id,))
+    row = cursor.fetchone()
+    cursor.close()
+    connection.close()
+    return row
+
+
+def delete_inquiry_row(inquiry_id):
+    connection = app_module.get_connection()
+    cursor = connection.cursor()
+    cursor.execute("DELETE FROM inquiries WHERE id = %s", (inquiry_id,))
+    connection.commit()
+    cursor.close()
+    connection.close()
+
+
+def count_inquiries():
+    connection = app_module.get_connection()
+    cursor = connection.cursor()
+    cursor.execute("SELECT COUNT(*) FROM inquiries")
+    total = cursor.fetchone()[0]
+    cursor.close()
+    connection.close()
+    return total
+
+
+@pytest.fixture()
+def track_inquiries():
+    """Any inquiry id a test creates (directly or through the UI) is
+    deleted again at teardown. Deleting an id twice - e.g. a test that
+    already deleted it itself, or whose property was deleted and cascaded
+    it away first (inquiries.property_id is ON DELETE CASCADE) - is a
+    harmless no-op. Usage: track_inquiries.append(id)."""
+    created = []
+    yield created
+    for inquiry_id in created:
+        delete_inquiry_row(inquiry_id)

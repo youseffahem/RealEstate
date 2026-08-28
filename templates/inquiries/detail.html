@@ -1,0 +1,163 @@
+{% extends "base.html" %}
+{% import "_icons.html" as ico %}
+
+{% block title %}Inquiry from {{ inquiry.name }} · REAL ESTATE{% endblock %}
+
+{% block shell_class %}shell-wide{% endblock %}
+
+{% block breadcrumb %}
+    <span class="form-group input-group">
+        <a href="{{ url_for('inquiries_list') }}" class="btn-link-secondary btn-cancel">{{ ico.icon('arrow-left', 14) }}
+            Back to inquiries</a>
+        <span class="user-info" aria-hidden="true"></span>
+    </span>
+{% endblock %}
+
+{% block heading %}Inquiry Details{% endblock %}
+{% block subtitle %}Full information for this customer inquiry.{% endblock %}
+
+{% block content %}
+
+<section class="card">
+
+    <h2>{{ ico.icon('user') }} {{ inquiry.name }}</h2>
+
+    <span class="user-row row-wrap property-badges">
+        <span class="badge-pill badge-status-{{ inquiry.status|lower }}">{{ inquiry.status }}</span>
+        <span class="user-date">{{ inquiry.created_at.strftime('%b %d, %Y · %H:%M') if inquiry.created_at else '—' }}</span>
+    </span>
+
+    <dl class="detail-grid">
+
+        <div class="detail-field">
+            <dt>Email</dt>
+            <dd><a href="mailto:{{ inquiry.email }}">{{ inquiry.email }}</a></dd>
+        </div>
+
+        <div class="detail-field">
+            <dt>Phone</dt>
+            <dd><a href="tel:{{ inquiry.phone }}">{{ inquiry.phone }}</a></dd>
+        </div>
+
+        <div class="detail-field">
+            <dt>Inquiry status</dt>
+            <dd>{{ inquiry.status }}</dd>
+        </div>
+
+        <div class="detail-field">
+            <dt>Created</dt>
+            <dd>{{ inquiry.created_at.strftime('%b %d, %Y · %H:%M') if inquiry.created_at else '—' }}</dd>
+        </div>
+
+        <div class="detail-field detail-description">
+            <dt>Message</dt>
+            <dd>{{ inquiry.message }}</dd>
+        </div>
+
+    </dl>
+
+</section>
+
+<!-- ===== Property this inquiry was sent about ===== -->
+<section class="card" aria-label="Property">
+    <h2>{{ ico.icon('home') }} Property</h2>
+
+    <dl class="detail-grid">
+
+        <div class="detail-field">
+            <dt>Title</dt>
+            <dd>{{ inquiry.property_title }}</dd>
+        </div>
+
+        <div class="detail-field">
+            <dt>Type</dt>
+            <dd>{{ inquiry.property_type }}</dd>
+        </div>
+
+        <div class="detail-field">
+            <dt>Location</dt>
+            <dd>{{ inquiry.location_name }}, {{ inquiry.location_city }}</dd>
+        </div>
+
+        <div class="detail-field">
+            <dt>Price</dt>
+            <dd>${{ inquiry.property_price|money }}</dd>
+        </div>
+
+        <div class="detail-field">
+            <dt>Listing type</dt>
+            <dd>{{ inquiry.property_listing_type }}</dd>
+        </div>
+
+        <div class="detail-field">
+            <dt>Property status</dt>
+            <dd>{{ inquiry.property_status }}</dd>
+        </div>
+
+    </dl>
+
+    <span class="input-group form-actions">
+        <a href="{{ url_for('property_view', id=inquiry.property_id) }}" class="btn-link-secondary btn-cancel">
+            {{ ico.icon('search', 14) }} View Property</a>
+    </span>
+</section>
+
+<!-- ===== Agent assigned to that property, if any ===== -->
+<section class="card" aria-label="Agent">
+    <h2>{{ ico.icon('user') }} Agent</h2>
+
+    {% if inquiry.agent_name %}
+    <dl class="detail-grid">
+
+        <div class="detail-field">
+            <dt>Name</dt>
+            <dd>{{ inquiry.agent_name }}</dd>
+        </div>
+
+        <div class="detail-field">
+            <dt>Email</dt>
+            <dd><a href="mailto:{{ inquiry.agent_email }}">{{ inquiry.agent_email }}</a></dd>
+        </div>
+
+        <div class="detail-field">
+            <dt>Phone</dt>
+            <dd><a href="tel:{{ inquiry.agent_phone }}">{{ inquiry.agent_phone }}</a></dd>
+        </div>
+
+    </dl>
+    {% else %}
+    <p class="submission-message">{{ ico.icon('database', 18) }} No agent assigned.</p>
+    {% endif %}
+</section>
+
+<span class="input-group form-actions row-wrap">
+    <a href="{{ url_for('inquiries_list') }}" class="btn-link-secondary btn-cancel">{{ ico.icon('arrow-left', 14) }}
+        Back to inquiries</a>
+    <span class="user-info" aria-hidden="true"></span>
+    <a href="{{ url_for('inquiries_edit', id=inquiry.id) }}" class="btn-link-primary">{{ ico.icon('pencil', 15) }}
+        Edit Inquiry</a>
+    <form action="{{ url_for('inquiries_delete', id=inquiry.id) }}" method="POST" class="inline-form"
+          data-delete-form data-item-name="the inquiry from {{ inquiry.name }}">
+        <button type="submit" class="btn-danger">{{ ico.icon('trash', 15) }} Delete Inquiry</button>
+    </form>
+</span>
+
+{% endblock %}
+
+{% block dialogs %}
+<!-- ===== Delete confirmation ===== -->
+<dialog class="card" data-delete-dialog aria-labelledby="delete-dialog-title">
+    <h2 id="delete-dialog-title">{{ ico.icon('trash', 18) }} Delete inquiry?</h2>
+
+    <p class="submission-message">
+        Are you sure you want to delete <strong data-delete-name></strong>?
+        This action cannot be undone. The related property and agent are never affected.
+    </p>
+
+    <span class="input-group">
+        <button type="button" class="btn-cancel" data-dialog-cancel>Cancel</button>
+        <span class="user-info" aria-hidden="true"></span>
+        <button type="button" class="btn-danger" data-dialog-confirm>Delete inquiry</button>
+    </span>
+</dialog>
+{% endblock %}

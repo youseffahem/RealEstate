@@ -56,6 +56,12 @@
                 <a href="{{ url_for('properties_new') }}"
                    class="nav-link {% if request.endpoint == 'properties_new' %}active{% endif %}"
                    {% if request.endpoint == 'properties_new' %}aria-current="page"{% endif %}>Add&nbsp;Property</a>
+                <a href="{{ url_for('agents_list') }}"
+                   class="nav-link {% if request.endpoint in ('agents_list', 'agent_detail', 'agents_add', 'agents_edit') %}active{% endif %}"
+                   {% if request.endpoint in ('agents_list', 'agent_detail', 'agents_add', 'agents_edit') %}aria-current="page"{% endif %}>Agents</a>
+                <a href="{{ url_for('inquiries_list') }}"
+                   class="nav-link {% if request.endpoint in ('inquiries_list', 'inquiry_detail', 'inquiries_add', 'inquiries_edit') %}active{% endif %}"
+                   {% if request.endpoint in ('inquiries_list', 'inquiry_detail', 'inquiries_add', 'inquiries_edit') %}aria-current="page"{% endif %}>Inquiries</a>
             </span>
         </nav>
 

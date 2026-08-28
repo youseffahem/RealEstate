@@ -7,6 +7,10 @@ import mysql.connector
 from dotenv import load_dotenv
 from flask import Flask, flash, jsonify, redirect, render_template, request, url_for
 
+import agent_queries
+import agent_validation
+import inquiry_queries
+import inquiry_validation
 import property_queries
 import property_validation
 import real_estate_db
@@ -381,6 +385,15 @@ def method_not_allowed(error):
     # Delete is POST only, so reaching it any other way lands back on the
     # catalog inside our own design instead of on the default error page.
     flash("That action has to be done from the page itself!", "error")
+    if request.path.startswith("/inquiries"):
+        # Phase 6 requirement: GET on an Inquiries POST-only route (delete)
+        # must answer with the real HTTP 405, not just a flash-and-redirect
+        # - see tests/test_inquiries.py "POST-only delete". Still lands the
+        # visitor back on the Inquiries page inside our own design, exactly
+        # like every other 405 here - only the status code differs.
+        response = redirect(url_for("inquiries_list"))
+        response.status_code = 405
+        return response
     return redirect(url_for("index"))
 
 
@@ -753,6 +766,9 @@ def property_view(id):
         connection = get_connection()
         row = property_queries.get_property_by_id(connection, id)
         images = property_queries.get_property_images(connection, id) if row else []
+        # Phase 6: the real, database-backed "N inquiries" count shown next
+        # to the "Inquire about this property" action - never hard coded.
+        inquiry_count = inquiry_queries.get_property_inquiry_count(connection, id) if row else 0
         connection.close()
     except mysql.connector.Error as error:
         app.logger.error("Database error while loading property %s: %s", id, error)
@@ -763,7 +779,8 @@ def property_view(id):
         flash("That property does not exist!", "error")
         return redirect(url_for("properties_manage"))
 
-    return render_template("properties/detail.html", property=row, images=images)
+    return render_template("properties/detail.html", property=row, images=images,
+                            inquiry_count=inquiry_count)
 
 
 # ===== Create Property =====
@@ -879,6 +896,462 @@ def properties_delete_page(id):
         flash('"' + row["title"] + '" has been deleted!', "success")
 
     return redirect(url_for("properties_manage"))
+
+
+# =====================================================================
+# PHASE 5 - AGENTS MANAGEMENT
+# =====================================================================
+#
+# HTML pages for the Agents system, following the exact same thin-
+# controller pattern as the Phase 3 property pages above: every route
+# calls straight into agent_queries.py / agent_validation.py for the
+# actual database work and validation rules, so there is exactly one
+# implementation of agent CRUD in the whole app.
+#
+# properties.agent_id is ON DELETE SET NULL (see real_estate_db.py), so
+# deleting an agent here never deletes a property - it only clears that
+# property's agent_id, and the property keeps working normally.
+
+_EMPTY_AGENT_FORM = {"name": "", "email": "", "phone": ""}
+
+
+def get_agent_form_data():
+    """Read the agent fields sent by the form."""
+    return {
+        "name": request.form.get("name", ""),
+        "email": request.form.get("email", ""),
+        "phone": request.form.get("phone", ""),
+    }
+
+
+def _agent_filters_from_query_string():
+    """?q=... -> the filters dict agent_queries.get_all_agents()
+    understands. Missing is simply left out - search is best-effort, it
+    never 500s."""
+    filters = {}
+    if request.args.get("q"):
+        filters["q"] = request.args["q"]
+    return filters
+
+
+def _render_agent_form(template, form_action, submit_label, agent_data):
+    """Shared GET-render for the create and edit pages, mirroring
+    _render_property_form()'s role for properties."""
+    return render_template(
+        template,
+        form_action=form_action,
+        submit_label=submit_label,
+        agent=agent_data,
+    )
+
+
+# ===== Agents - list, search and live statistics =====
+@app.route("/agents")
+def agents_list():
+    agents = []
+    stats = {"total_agents": 0, "agents_with_properties": 0, "unassigned_properties": 0}
+    try:
+        connection = get_connection()
+        agents = agent_queries.get_all_agents(connection, _agent_filters_from_query_string())
+        stats = agent_queries.get_agent_overview_stats(connection)
+        connection.close()
+    except mysql.connector.Error as error:
+        app.logger.error("Database error while listing agents: %s", error)
+        flash("Could not load the agents. Please try again later.", "error")
+
+    return render_template("agents/index.html", agents=agents, stats=stats, filters=request.args)
+
+
+# ===== Agent Details =====
+@app.route("/agents/<int:id>")
+def agent_detail(id):
+    try:
+        connection = get_connection()
+        agent = agent_queries.get_agent_by_id(connection, id)
+        properties = agent_queries.get_agent_properties(connection, id) if agent else []
+        # Phase 6: every inquiry sent about one of this agent's assigned
+        # properties, via a proper JOIN (inquiry_queries.get_agent_inquiries).
+        inquiries = inquiry_queries.get_agent_inquiries(connection, id) if agent else []
+        connection.close()
+    except mysql.connector.Error as error:
+        app.logger.error("Database error while loading agent %s: %s", id, error)
+        flash("Could not load this agent. Please try again later.", "error")
+        return redirect(url_for("agents_list"))
+
+    if agent is None:
+        flash("That agent does not exist!", "error")
+        return redirect(url_for("agents_list"))
+
+    return render_template("agents/detail.html", agent=agent, properties=properties, inquiries=inquiries)
+
+
+# ===== Create Agent =====
+@app.route("/agents/add", methods=["GET", "POST"])
+def agents_add():
+    if request.method == "POST":
+        data = get_agent_form_data()
+
+        try:
+            connection = get_connection()
+        except mysql.connector.Error as error:
+            app.logger.error("Database error: %s", error)
+            flash("The database is unavailable. Please try again later.", "error")
+            return _render_agent_form("agents/add.html", url_for("agents_add"), "Create agent", data)
+
+        try:
+            existing_emails = agent_queries.get_all_agent_emails(connection)
+            errors, cleaned = agent_validation.validate_agent_payload(data, existing_emails)
+            if errors:
+                for error in errors:
+                    flash(error, "error")
+                return _render_agent_form("agents/add.html", url_for("agents_add"), "Create agent", data)
+
+            new_id = agent_queries.create_agent(connection, cleaned)
+        except mysql.connector.Error as error:
+            app.logger.error("Database error while creating an agent: %s", error)
+            flash("Could not save the agent. Please try again later.", "error")
+            return _render_agent_form("agents/add.html", url_for("agents_add"), "Create agent", data)
+        finally:
+            connection.close()
+
+        flash('"' + cleaned["name"] + '" has been added!', "success")
+        return redirect(url_for("agent_detail", id=new_id))
+
+    return _render_agent_form("agents/add.html", url_for("agents_add"), "Create agent", _EMPTY_AGENT_FORM)
+
+
+# ===== Edit Agent =====
+@app.route("/agents/edit/<int:id>", methods=["GET", "POST"])
+def agents_edit(id):
+    try:
+        connection = get_connection()
+    except mysql.connector.Error as error:
+        app.logger.error("Database error: %s", error)
+        flash("The database is unavailable. Please try again later.", "error")
+        return redirect(url_for("agents_list"))
+
+    existing = agent_queries.get_agent_by_id(connection, id)
+    if existing is None:
+        connection.close()
+        flash("That agent does not exist!", "error")
+        return redirect(url_for("agents_list"))
+
+    if request.method == "POST":
+        data = get_agent_form_data()
+        try:
+            existing_emails = agent_queries.get_all_agent_emails(connection, exclude_id=id)
+            errors, cleaned = agent_validation.validate_agent_payload(data, existing_emails)
+            if errors:
+                for error in errors:
+                    flash(error, "error")
+                return _render_agent_form("agents/edit.html", url_for("agents_edit", id=id),
+                                           "Save changes", data)
+
+            agent_queries.update_agent(connection, id, cleaned)
+        except mysql.connector.Error as error:
+            app.logger.error("Database error while updating agent %s: %s", id, error)
+            flash("Could not update the agent. Please try again later.", "error")
+            return _render_agent_form("agents/edit.html", url_for("agents_edit", id=id),
+                                       "Save changes", data)
+        finally:
+            connection.close()
+
+        flash('"' + cleaned["name"] + '" has been updated!', "success")
+        return redirect(url_for("agent_detail", id=id))
+
+    connection.close()
+    return _render_agent_form("agents/edit.html", url_for("agents_edit", id=id), "Save changes", existing)
+
+
+# ===== Delete Agent (POST only - never on GET) =====
+# properties.agent_id is ON DELETE SET NULL, so deleting an agent here
+# never deletes a property - see real_estate_db.py and agent_queries.py.
+@app.route("/agents/delete/<int:id>", methods=["POST"])
+def agents_delete(id):
+    try:
+        connection = get_connection()
+        agent = agent_queries.get_agent_by_id(connection, id)
+        deleted = agent_queries.delete_agent(connection, id) if agent else 0
+        connection.close()
+    except mysql.connector.Error as error:
+        app.logger.error("Database error while deleting agent %s: %s", id, error)
+        flash("Could not delete the agent. Please try again later.", "error")
+        return redirect(url_for("agents_list"))
+
+    if deleted == 0:
+        flash("That agent does not exist!", "error")
+    else:
+        flash('"' + agent["name"] + '" has been deleted. Any assigned properties remain, now unassigned.', "success")
+
+    return redirect(url_for("agents_list"))
+
+
+# =====================================================================
+# PHASE 6 - INQUIRIES / LEADS MANAGEMENT
+# =====================================================================
+#
+# HTML pages for the Inquiries system, the same thin-controller pattern as
+# the Phase 3 property pages and the Phase 5 agent pages above: every
+# route calls straight into inquiry_queries.py / inquiry_validation.py for
+# the actual database work and validation rules, so there is exactly one
+# implementation of inquiry CRUD in the whole app.
+#
+# The business flow this backs: a customer viewing a property sends an
+# inquiry (always starting as "New"); an agent works it from the
+# Inquiries page, moving it New -> Contacted -> Closed. inquiries.property_id
+# is ON DELETE CASCADE (see real_estate_db.py), so deleting a property also
+# removes its inquiries - deleting an inquiry itself never touches the
+# property, its agent or its images.
+
+_EMPTY_INQUIRY_FORM = {
+    "name": "", "email": "", "phone": "", "message": "", "property_id": "", "status": "New",
+}
+
+
+def get_inquiry_form_data():
+    """Read the inquiry fields sent by the form. A customer's Create form
+    never renders a status control, so "status" is simply absent from
+    request.form on that page - inquiry_validation defaults it to "New"."""
+    return {
+        "name": request.form.get("name", ""),
+        "email": request.form.get("email", ""),
+        "phone": request.form.get("phone", ""),
+        "message": request.form.get("message", ""),
+        "property_id": request.form.get("property_id", ""),
+        "status": request.form.get("status", ""),
+    }
+
+
+def _inquiry_filters_from_query_string():
+    """?status=...&property_id=...&agent_id=...&q=... -> the filters dict
+    inquiry_queries.get_all_inquiries() understands. Anything missing or
+    malformed is simply left out - filtering is best-effort, it never 500s."""
+    args = request.args
+    filters = {}
+
+    if args.get("status"):
+        filters["status"] = args["status"]
+    if args.get("q"):
+        filters["q"] = args["q"]
+
+    for key in ("property_id", "agent_id"):
+        raw = args.get(key)
+        if raw:
+            try:
+                filters[key] = int(raw)
+            except ValueError:
+                pass
+
+    return filters
+
+
+def _inquiry_reference_or_empty():
+    """The property options and agents used by the Inquiries filters and
+    the create/edit form's Property select. Never raises - an unreachable
+    database just means empty dropdowns and a flashed error, the same
+    "still show the page" rule the rest of the app follows."""
+    try:
+        connection = get_connection()
+        properties = inquiry_queries.get_property_options(connection)
+        agents = property_queries.get_reference_data(connection)["agents"]
+        connection.close()
+        return {"properties": properties, "agents": agents}
+    except mysql.connector.Error as error:
+        app.logger.error("Database error while loading reference data: %s", error)
+        flash("Could not load properties or agents. Please try again later.", "error")
+        return {"properties": [], "agents": []}
+
+
+def _render_inquiry_form(template, form_action, submit_label, inquiry_data, show_status=False):
+    """Shared GET-render for the create and edit pages, mirroring
+    _render_property_form()'s and _render_agent_form()'s role for their
+    own forms. `show_status` is False on the customer-facing Create page
+    (the customer never chooses a status - Section 6) and True on the
+    agent-facing Edit page."""
+    reference = _inquiry_reference_or_empty()
+    return render_template(
+        template,
+        form_action=form_action,
+        submit_label=submit_label,
+        inquiry=inquiry_data,
+        properties=reference["properties"],
+        statuses=inquiry_validation.STATUSES,
+        show_status=show_status,
+    )
+
+
+# ===== Inquiries - list, search, filter and live statistics =====
+@app.route("/inquiries")
+def inquiries_list():
+    inquiries = []
+    stats = {"total": 0, "new": 0, "contacted": 0, "closed": 0, "today": 0}
+    reference = {"properties": [], "agents": []}
+    try:
+        connection = get_connection()
+        inquiries = inquiry_queries.get_all_inquiries(connection, _inquiry_filters_from_query_string())
+        stats = inquiry_queries.get_inquiry_stats(connection)
+        reference["properties"] = inquiry_queries.get_property_options(connection)
+        reference["agents"] = property_queries.get_reference_data(connection)["agents"]
+        connection.close()
+    except mysql.connector.Error as error:
+        app.logger.error("Database error while listing inquiries: %s", error)
+        flash("Could not load the inquiries. Please try again later.", "error")
+
+    return render_template(
+        "inquiries/index.html",
+        inquiries=inquiries,
+        stats=stats,
+        properties=reference["properties"],
+        agents=reference["agents"],
+        statuses=inquiry_validation.STATUSES,
+        filters=request.args,
+    )
+
+
+# ===== Inquiry Details =====
+@app.route("/inquiries/<int:id>")
+def inquiry_detail(id):
+    try:
+        connection = get_connection()
+        row = inquiry_queries.get_inquiry_by_id(connection, id)
+        connection.close()
+    except mysql.connector.Error as error:
+        app.logger.error("Database error while loading inquiry %s: %s", id, error)
+        flash("Could not load this inquiry. Please try again later.", "error")
+        return redirect(url_for("inquiries_list"))
+
+    if row is None:
+        flash("That inquiry does not exist!", "error")
+        return redirect(url_for("inquiries_list"))
+
+    return render_template("inquiries/detail.html", inquiry=row)
+
+
+# ===== Create Inquiry (customer-facing) =====
+# Section 7: reached from a property's "Inquire about this property"
+# action as /inquiries/add?property_id=<id>, which preselects that
+# property in the form below - the customer still has to submit it.
+@app.route("/inquiries/add", methods=["GET", "POST"])
+def inquiries_add():
+    if request.method == "POST":
+        data = get_inquiry_form_data()
+
+        try:
+            connection = get_connection()
+        except mysql.connector.Error as error:
+            app.logger.error("Database error: %s", error)
+            flash("The database is unavailable. Please try again later.", "error")
+            return _render_inquiry_form("inquiries/add.html", url_for("inquiries_add"),
+                                         "Send inquiry", data)
+
+        try:
+            valid_property_ids = inquiry_queries.get_valid_property_ids(connection)
+            errors, cleaned = inquiry_validation.validate_inquiry_payload(data, valid_property_ids)
+            if errors:
+                for error in errors:
+                    flash(error, "error")
+                return _render_inquiry_form("inquiries/add.html", url_for("inquiries_add"),
+                                             "Send inquiry", data)
+
+            # Section 6: the customer must NOT choose the status. The Create
+            # form never renders that control, but this route is the real
+            # guarantee - it forces "New" even if a status were forged onto
+            # a raw POST, instead of trusting the template alone.
+            cleaned["status"] = "New"
+            new_id = inquiry_queries.create_inquiry(connection, cleaned)
+        except mysql.connector.Error as error:
+            app.logger.error("Database error while creating an inquiry: %s", error)
+            flash("Could not send the inquiry. Please try again later.", "error")
+            return _render_inquiry_form("inquiries/add.html", url_for("inquiries_add"),
+                                         "Send inquiry", data)
+        finally:
+            connection.close()
+
+        flash("Your inquiry has been sent! An agent will be in touch soon.", "success")
+        return redirect(url_for("inquiry_detail", id=new_id))
+
+    # GET - an empty form, with the property preselected when the visitor
+    # arrived from that property's own "Inquire about this property" link.
+    prefilled = dict(_EMPTY_INQUIRY_FORM)
+    prefilled["property_id"] = request.args.get("property_id", "")
+    return _render_inquiry_form("inquiries/add.html", url_for("inquiries_add"), "Send inquiry", prefilled)
+
+
+# ===== Edit Inquiry (agent-facing: edit details, manage status) =====
+@app.route("/inquiries/edit/<int:id>", methods=["GET", "POST"])
+def inquiries_edit(id):
+    try:
+        connection = get_connection()
+    except mysql.connector.Error as error:
+        app.logger.error("Database error: %s", error)
+        flash("The database is unavailable. Please try again later.", "error")
+        return redirect(url_for("inquiries_list"))
+
+    existing = inquiry_queries.get_inquiry_by_id(connection, id)
+    if existing is None:
+        connection.close()
+        flash("That inquiry does not exist!", "error")
+        return redirect(url_for("inquiries_list"))
+
+    if request.method == "POST":
+        data = get_inquiry_form_data()
+        try:
+            valid_property_ids = inquiry_queries.get_valid_property_ids(connection)
+            errors, cleaned = inquiry_validation.validate_inquiry_payload(data, valid_property_ids)
+            if not errors:
+                # Section 11: the ENUM itself controls which values are
+                # possible; this controls which move from the inquiry's
+                # *current* status is allowed (never backward).
+                transition_error = inquiry_validation.validate_status_transition(
+                    existing["status"], cleaned["status"]
+                )
+                if transition_error:
+                    errors.append(transition_error)
+
+            if errors:
+                for error in errors:
+                    flash(error, "error")
+                return _render_inquiry_form("inquiries/edit.html", url_for("inquiries_edit", id=id),
+                                             "Save changes", data, show_status=True)
+
+            inquiry_queries.update_inquiry(connection, id, cleaned)
+        except mysql.connector.Error as error:
+            app.logger.error("Database error while updating inquiry %s: %s", id, error)
+            flash("Could not update the inquiry. Please try again later.", "error")
+            return _render_inquiry_form("inquiries/edit.html", url_for("inquiries_edit", id=id),
+                                         "Save changes", data, show_status=True)
+        finally:
+            connection.close()
+
+        flash("The inquiry has been updated!", "success")
+        return redirect(url_for("inquiry_detail", id=id))
+
+    connection.close()
+    return _render_inquiry_form("inquiries/edit.html", url_for("inquiries_edit", id=id),
+                                 "Save changes", existing, show_status=True)
+
+
+# ===== Delete Inquiry (POST only - never on GET; see method_not_allowed) =====
+# inquiries has no dependents of its own, so deleting one only ever removes
+# that single row - the property, its agent and its images are untouched.
+@app.route("/inquiries/delete/<int:id>", methods=["POST"])
+def inquiries_delete(id):
+    try:
+        connection = get_connection()
+        row = inquiry_queries.get_inquiry_by_id(connection, id)
+        deleted = inquiry_queries.delete_inquiry(connection, id) if row else 0
+        connection.close()
+    except mysql.connector.Error as error:
+        app.logger.error("Database error while deleting inquiry %s: %s", id, error)
+        flash("Could not delete the inquiry. Please try again later.", "error")
+        return redirect(url_for("inquiries_list"))
+
+    if deleted == 0:
+        flash("That inquiry does not exist!", "error")
+    else:
+        flash('The inquiry from "' + row["name"] + '" has been deleted!', "success")
+
+    return redirect(url_for("inquiries_list"))
 
 
 if __name__ == "__main__":

@@ -46,8 +46,9 @@ def get_all_properties(connection, filters=None):
     """Every property, joined for display, optionally narrowed by `filters`.
 
     Supported filters (all optional, all bound as parameters):
-    status, listing_type, property_type_id, location_id, min_price,
-    max_price, min_area, max_area, q (matches title or description).
+    status, listing_type, property_type_id, location_id, agent_id,
+    min_price, max_price, min_area, max_area, q (matches title or
+    description).
     """
     filters = filters or {}
     clauses = []
@@ -65,6 +66,9 @@ def get_all_properties(connection, filters=None):
     if filters.get("location_id") is not None:
         clauses.append("p.location_id = %s")
         params.append(filters["location_id"])
+    if filters.get("agent_id") is not None:
+        clauses.append("p.agent_id = %s")
+        params.append(filters["agent_id"])
     if filters.get("min_price") is not None:
         clauses.append("p.price >= %s")
         params.append(filters["min_price"])

@@ -1,0 +1,42 @@
+{# Shared by add.html and edit.html so both pages stay visually identical -
+   the same pattern properties/_property_form.html already uses.
+   Expects: form_action, submit_label, agent. #}
+{% import "_icons.html" as ico %}
+
+<section class="card form-card">
+    <h2>{{ ico.icon('user') }} Agent details</h2>
+
+    <form id="agent-form" action="{{ form_action }}" method="POST">
+
+        <div class="form-group">
+            <label for="name">Full name</label>
+            <input type="text" name="name" id="name" placeholder="e.g. Ahmed El-Sayed"
+                   value="{{ agent.name }}" autocomplete="off" required
+                   maxlength="120" aria-describedby="name-hint">
+            <span class="field-hint" id="name-hint">Up to 120 characters.</span>
+        </div>
+
+        <div class="form-group">
+            <label for="email">Email</label>
+            <input type="email" name="email" id="email" placeholder="e.g. ahmed.elsayed@example.com"
+                   value="{{ agent.email }}" autocomplete="off" required
+                   maxlength="160" aria-describedby="email-hint">
+            <span class="field-hint" id="email-hint">Must be unique across every agent.</span>
+        </div>
+
+        <div class="form-group">
+            <label for="phone">Phone</label>
+            <input type="text" name="phone" id="phone" placeholder="e.g. 010-1234-5678"
+                   value="{{ agent.phone }}" autocomplete="off" required
+                   maxlength="30" aria-describedby="phone-hint">
+            <span class="field-hint" id="phone-hint">Up to 30 characters.</span>
+        </div>
+
+    </form>
+
+    <span class="input-group form-actions">
+        <a href="{{ url_for('agents_list') }}" class="btn-link-secondary btn-cancel">Cancel</a>
+        <span class="user-info" aria-hidden="true"></span>
+        <button type="submit" form="agent-form">{{ ico.icon('check', 15) }} {{ submit_label }}</button>
+    </span>
+</section>

@@ -1,0 +1,169 @@
+{% extends "base.html" %}
+{% import "_icons.html" as ico %}
+
+{% block title %}Agents · REAL ESTATE{% endblock %}
+
+{# .shell-wide: full width up to 1320px, same column the properties page uses. #}
+{% block shell_class %}shell-wide{% endblock %}
+
+{% block heading %}Agent Management{% endblock %}
+{% block subtitle %}Manage the agents on your team and the properties assigned to them.{% endblock %}
+
+{% block content %}
+
+<!-- ===== Live statistics, read from agent_queries.get_agent_overview_stats() ===== -->
+<section class="user-row stats-row" aria-label="Agents overview">
+
+    <article class="card user-info col-stat stat-card stat-accent-cyan">
+        <h2 class="stat-head">
+            <span class="stat-icon">{{ ico.icon('user', 18) }}</span>
+            <span class="stat-value">{{ stats.total_agents }}</span>
+        </h2>
+        <span class="user-date stat-label">Total agents</span>
+    </article>
+
+    <article class="card user-info col-stat stat-card stat-accent-success">
+        <h2 class="stat-head">
+            <span class="stat-icon">{{ ico.icon('check', 18) }}</span>
+            <span class="stat-value">{{ stats.agents_with_properties }}</span>
+        </h2>
+        <span class="user-date stat-label">Agents with properties</span>
+    </article>
+
+    <article class="card user-info col-stat stat-card stat-accent-crimson">
+        <h2 class="stat-head">
+            <span class="stat-icon">{{ ico.icon('alert', 18) }}</span>
+            <span class="stat-value">{{ stats.unassigned_properties }}</span>
+        </h2>
+        <span class="user-date stat-label">Unassigned properties</span>
+    </article>
+
+</section>
+
+<!-- ===== Search - connected to agent_queries.get_all_agents() ===== -->
+<section class="card">
+
+    <h2>{{ ico.icon('user') }} Agents <span class="badge" data-count>{{ agents|length }}</span></h2>
+
+    <form method="GET" action="{{ url_for('agents_list') }}" class="filter-bar user-row row-wrap">
+
+        <span class="user-info field-grow">
+            <input type="search" name="q" value="{{ filters.get('q', '') }}"
+                   placeholder="Search by name, email or phone…"
+                   aria-label="Search agents by name, email or phone" autocomplete="off">
+        </span>
+
+        <span class="input-group">
+            <button type="submit">{{ ico.icon('search', 15) }} Search</button>
+        </span>
+
+        {% if filters %}
+        <a href="{{ url_for('agents_list') }}" class="btn-link-secondary btn-cancel">{{ ico.icon('close', 13) }}
+            Clear</a>
+        {% endif %}
+
+        <span class="user-info" aria-hidden="true"></span>
+
+        <a href="{{ url_for('agents_add') }}" class="btn-link-primary">{{ ico.icon('plus', 15) }} Add&nbsp;Agent</a>
+
+    </form>
+
+</section>
+
+{% if agents %}
+
+<div class="property-grid agent-grid">
+    {% for agent in agents %}
+    <article class="card property-card agent-card">
+
+        <div class="property-card-media is-empty" aria-hidden="true">{{ ico.icon('user', 22) }}</div>
+
+        <h2>{{ ico.icon('user', 16) }} <span title="{{ agent.name }}">{{ agent.name }}</span></h2>
+
+        <span class="user-row">
+            {{ ico.icon('mail', 14) }}
+            <a href="mailto:{{ agent.email }}">{{ agent.email }}</a>
+        </span>
+
+        <span class="user-row">
+            {{ ico.icon('phone', 14) }}
+            <a href="tel:{{ agent.phone }}">{{ agent.phone }}</a>
+        </span>
+
+        <span class="user-row row-wrap property-meta">
+            <span class="badge-pill">{{ agent.property_count }} Assigned</span>
+            <span class="badge-pill badge-status-available">{{ agent.available_count }} Available</span>
+            <span class="badge-pill badge-status-sold">{{ agent.sold_count }} Sold</span>
+            <span class="badge-pill badge-status-rented">{{ agent.rented_count }} Rented</span>
+        </span>
+
+        <!-- Actions: VIEW, EDIT and DELETE, always visible and always labelled -->
+        <span class="user-row property-actions">
+            <a href="{{ url_for('agent_detail', id=agent.id) }}" class="btn-icon btn-action"
+               aria-label="View {{ agent.name }}">{{ ico.icon('search', 15) }}<span class="btn-action-label">View</span></a>
+
+            <a href="{{ url_for('agents_edit', id=agent.id) }}" class="btn-icon btn-action btn-edit"
+               aria-label="Edit {{ agent.name }}">{{ ico.icon('pencil', 15) }}<span class="btn-action-label">Edit</span></a>
+
+            <form action="{{ url_for('agents_delete', id=agent.id) }}" method="POST" class="inline-form"
+                  data-delete-form data-item-name="{{ agent.name }}">
+                <button type="submit" class="btn-icon btn-action btn-delete"
+                        aria-label="Delete {{ agent.name }}">{{ ico.icon('trash', 15) }}<span
+                            class="btn-action-label">Delete</span></button>
+            </form>
+        </span>
+
+    </article>
+    {% endfor %}
+</div>
+
+{% else %}
+
+<!-- Empty state: either there are no agents at all, or this search has no matches -->
+<div class="submission-message">
+    <span class="user-row row-wrap">
+        {{ ico.icon('database', 22) }}
+        <span class="user-info">
+            {% if filters %}
+            <span class="user-name">No matching agents found.</span>
+            <span>Try a different search.</span>
+            {% else %}
+            <span class="user-name">No agents found.</span>
+            <span>Add your first agent to start assigning them to properties.</span>
+            {% endif %}
+        </span>
+        {% if filters %}
+        <span class="input-group">
+            <a href="{{ url_for('agents_list') }}" class="btn-link-secondary btn-cancel">{{ ico.icon('close', 14) }}
+                Clear search</a>
+        </span>
+        {% else %}
+        <span class="input-group">
+            <a href="{{ url_for('agents_add') }}" class="btn-link-primary">{{ ico.icon('plus', 15) }}
+                Add&nbsp;agent</a>
+        </span>
+        {% endif %}
+    </span>
+</div>
+
+{% endif %}
+
+{% endblock %}
+
+{% block dialogs %}
+<!-- ===== Delete confirmation ===== -->
+<dialog class="card" data-delete-dialog aria-labelledby="delete-dialog-title">
+    <h2 id="delete-dialog-title">{{ ico.icon('trash', 18) }} Delete agent?</h2>
+
+    <p class="submission-message">
+        Are you sure you want to delete <strong data-delete-name></strong>?
+        Any properties assigned to this agent remain - only the agent link is removed.
+    </p>
+
+    <span class="input-group">
+        <button type="button" class="btn-cancel" data-dialog-cancel>Cancel</button>
+        <span class="user-info" aria-hidden="true"></span>
+        <button type="button" class="btn-danger" data-dialog-confirm>Delete agent</button>
+    </span>
+</dialog>
+{% endblock %}

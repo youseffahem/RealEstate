@@ -1,0 +1,24 @@
+{% extends "base.html" %}
+{% import "_icons.html" as ico %}
+
+{% block title %}Send Inquiry · REAL ESTATE{% endblock %}
+
+{# .shell-form: the same narrower column the agent create/edit pages use. #}
+{% block shell_class %}shell-form{% endblock %}
+
+{% block breadcrumb %}
+    <span class="form-group input-group">
+        <a href="{{ url_for('inquiries_list') }}" class="btn-link-secondary btn-cancel">{{ ico.icon('arrow-left', 14) }}
+            Back to inquiries</a>
+        <span class="user-info" aria-hidden="true"></span>
+    </span>
+{% endblock %}
+
+{% block heading %}Inquire about a property{% endblock %}
+{% block subtitle %}Tell us what you'd like to know, and an agent will follow up.{% endblock %}
+
+{# form_action, submit_label, inquiry and the reference lists all come from
+   app.py's _render_inquiry_form() - no need to recompute them here. #}
+{% block content %}
+    {% include "inquiries/_inquiry_form.html" %}
+{% endblock %}

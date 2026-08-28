@@ -1,0 +1,79 @@
+{# Shared by add.html and edit.html so both pages stay visually identical -
+   the same pattern properties/_property_form.html and agents/_agent_form.html
+   already use.
+   Expects: form_action, submit_label, inquiry, properties, statuses,
+   show_status (True only on the agent-facing Edit page - Section 6: a
+   customer never chooses the status). #}
+{% import "_icons.html" as ico %}
+
+<section class="card form-card">
+    <h2>{{ ico.icon('mail') }} Inquiry details</h2>
+
+    <form id="inquiry-form" action="{{ form_action }}" method="POST">
+
+        <div class="form-group">
+            <label for="name">Full name</label>
+            <input type="text" name="name" id="name" placeholder="e.g. Sara Ibrahim"
+                   value="{{ inquiry.name }}" autocomplete="off" required
+                   maxlength="120" aria-describedby="name-hint">
+            <span class="field-hint" id="name-hint">Up to 120 characters.</span>
+        </div>
+
+        <div class="form-row">
+            <div class="form-group">
+                <label for="email">Email</label>
+                <input type="email" name="email" id="email" placeholder="e.g. sara.ibrahim@example.com"
+                       value="{{ inquiry.email }}" autocomplete="off" required
+                       maxlength="160" aria-describedby="email-hint">
+                <span class="field-hint" id="email-hint">We'll reply to this address.</span>
+            </div>
+
+            <div class="form-group">
+                <label for="phone">Phone</label>
+                <input type="text" name="phone" id="phone" placeholder="e.g. 010-1111-2222"
+                       value="{{ inquiry.phone }}" autocomplete="off" required
+                       maxlength="30" aria-describedby="phone-hint">
+                <span class="field-hint" id="phone-hint">Up to 30 characters.</span>
+            </div>
+        </div>
+
+        <div class="form-group">
+            <label for="property_id">Property</label>
+            <select name="property_id" id="property_id" required>
+                <option value="">Select a property</option>
+                {% for property in properties %}
+                <option value="{{ property.id }}"
+                    {% if inquiry.property_id is not none and inquiry.property_id|string == property.id|string %}selected{% endif %}>
+                    {{ property.title }}</option>
+                {% endfor %}
+            </select>
+        </div>
+
+        {% if show_status %}
+        <div class="form-group">
+            <label for="status">Status</label>
+            <select name="status" id="status" required>
+                {% for s in statuses %}
+                <option value="{{ s }}" {% if inquiry.status == s %}selected{% endif %}>{{ s }}</option>
+                {% endfor %}
+            </select>
+            <span class="field-hint">An inquiry only moves forward: New &rarr; Contacted &rarr; Closed.</span>
+        </div>
+        {% endif %}
+
+        <div class="form-group">
+            <label for="message">Message</label>
+            <textarea name="message" id="message" rows="5" required maxlength="2000"
+                      placeholder="What would you like to ask about this property?"
+                      aria-describedby="message-hint">{{ inquiry.message or '' }}</textarea>
+            <span class="field-hint" id="message-hint">Up to 2000 characters.</span>
+        </div>
+
+    </form>
+
+    <span class="input-group form-actions">
+        <a href="{{ url_for('inquiries_list') }}" class="btn-link-secondary btn-cancel">Cancel</a>
+        <span class="user-info" aria-hidden="true"></span>
+        <button type="submit" form="inquiry-form">{{ ico.icon('check', 15) }} {{ submit_label }}</button>
+    </span>
+</section>

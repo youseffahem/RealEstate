@@ -1,0 +1,162 @@
+{% extends "base.html" %}
+{% import "_icons.html" as ico %}
+
+{% block title %}{{ agent.name }} · REAL ESTATE{% endblock %}
+
+{% block shell_class %}shell-wide{% endblock %}
+
+{% block breadcrumb %}
+    <span class="form-group input-group">
+        <a href="{{ url_for('agents_list') }}" class="btn-link-secondary btn-cancel">{{ ico.icon('arrow-left', 14) }}
+            Back to agents</a>
+        <span class="user-info" aria-hidden="true"></span>
+    </span>
+{% endblock %}
+
+{% block heading %}Agent Details{% endblock %}
+{% block subtitle %}Full information for this agent and their assigned properties.{% endblock %}
+
+{% block content %}
+
+<section class="card">
+
+    <h2>{{ ico.icon('user') }} {{ agent.name }}</h2>
+
+    <span class="user-row row-wrap property-badges">
+        <span class="badge-pill">{{ agent.property_count }} Assigned</span>
+        <span class="badge-pill badge-status-available">{{ agent.available_count }} Available</span>
+        <span class="badge-pill badge-status-reserved">{{ agent.reserved_count }} Reserved</span>
+        <span class="badge-pill badge-status-sold">{{ agent.sold_count }} Sold</span>
+        <span class="badge-pill badge-status-rented">{{ agent.rented_count }} Rented</span>
+    </span>
+
+    <dl class="detail-grid">
+
+        <div class="detail-field">
+            <dt>Email</dt>
+            <dd><a href="mailto:{{ agent.email }}">{{ agent.email }}</a></dd>
+        </div>
+
+        <div class="detail-field">
+            <dt>Phone</dt>
+            <dd><a href="tel:{{ agent.phone }}">{{ agent.phone }}</a></dd>
+        </div>
+
+        <div class="detail-field">
+            <dt>Created</dt>
+            <dd>{{ agent.created_at.strftime('%b %d, %Y · %H:%M') if agent.created_at else '—' }}</dd>
+        </div>
+
+        <div class="detail-field">
+            <dt>Total assigned properties</dt>
+            <dd>{{ agent.property_count }}</dd>
+        </div>
+
+    </dl>
+
+</section>
+
+<!-- ===== Assigned properties - agent_queries.get_agent_properties() ===== -->
+<section class="card" aria-label="Assigned properties">
+    <h2>{{ ico.icon('home') }} Assigned properties <span class="badge" data-count>{{ properties|length }}</span></h2>
+
+    {% if properties %}
+    <div class="property-grid">
+        {% for property in properties %}
+        <article class="card property-card">
+
+            <h2>{{ ico.icon('home', 16) }} <span title="{{ property.title }}">{{ property.title|truncate(42, True, '…') }}</span></h2>
+
+            <span class="user-row row-wrap property-badges">
+                <span class="badge-pill {{ 'badge-listing-sale' if property.listing_type == 'For Sale' else 'badge-listing-rent' }}">
+                    {{ property.listing_type }}</span>
+                <span class="badge-pill badge-status-{{ property.status|lower }}">{{ property.status }}</span>
+                <span class="user-date">{{ property.property_type }}</span>
+            </span>
+
+            <span class="property-price price-value">${{ property.price|money }}</span>
+
+            <span class="user-row">
+                {{ ico.icon('map-pin', 14) }}
+                <span class="user-date">{{ property.location_name }}, {{ property.location_city }}</span>
+            </span>
+
+            <span class="user-row property-actions">
+                <a href="{{ url_for('property_view', id=property.id) }}" class="btn-icon btn-action"
+                   aria-label="View {{ property.title }}">{{ ico.icon('search', 15) }}<span class="btn-action-label">View</span></a>
+            </span>
+
+        </article>
+        {% endfor %}
+    </div>
+    {% else %}
+    <p class="submission-message">{{ ico.icon('database', 18) }} No properties are currently assigned to this agent.</p>
+    {% endif %}
+</section>
+
+<!-- ===== Recent inquiries - inquiry_queries.get_agent_inquiries(), joined
+       through this agent's assigned properties ===== -->
+<section class="card" aria-label="Recent inquiries">
+    <h2>{{ ico.icon('mail') }} Recent inquiries <span class="badge" data-count>{{ inquiries|length }}</span></h2>
+
+    {% if inquiries %}
+    <div class="property-grid">
+        {% for inquiry in inquiries %}
+        <article class="card property-card">
+
+            <h2>{{ ico.icon('user', 16) }} <span title="{{ inquiry.name }}">{{ inquiry.name }}</span></h2>
+
+            <span class="user-row row-wrap property-badges">
+                <span class="badge-pill badge-status-{{ inquiry.status|lower }}">{{ inquiry.status }}</span>
+                <span class="user-date">{{ inquiry.created_at.strftime('%b %d, %Y') if inquiry.created_at else '—' }}</span>
+            </span>
+
+            <span class="user-row">
+                {{ ico.icon('home', 14) }}
+                <span title="{{ inquiry.property_title }}">{{ inquiry.property_title|truncate(38, True, '…') }}</span>
+            </span>
+
+            <span class="user-row property-actions">
+                <a href="{{ url_for('inquiry_detail', id=inquiry.id) }}" class="btn-icon btn-action"
+                   aria-label="View inquiry from {{ inquiry.name }}">{{ ico.icon('search', 15) }}<span class="btn-action-label">View</span></a>
+            </span>
+
+        </article>
+        {% endfor %}
+    </div>
+    {% else %}
+    <p class="submission-message">{{ ico.icon('database', 18) }} No inquiries yet for this agent's properties.</p>
+    {% endif %}
+</section>
+
+<span class="input-group form-actions row-wrap">
+    <a href="{{ url_for('agents_list') }}" class="btn-link-secondary btn-cancel">{{ ico.icon('arrow-left', 14) }}
+        Back to agents</a>
+    <span class="user-info" aria-hidden="true"></span>
+    <a href="{{ url_for('agents_edit', id=agent.id) }}" class="btn-link-primary">{{ ico.icon('pencil', 15) }}
+        Edit Agent</a>
+    <form action="{{ url_for('agents_delete', id=agent.id) }}" method="POST" class="inline-form"
+          data-delete-form data-item-name="{{ agent.name }}">
+        <button type="submit" class="btn-danger">{{ ico.icon('trash', 15) }} Delete Agent</button>
+    </form>
+</span>
+
+{% endblock %}
+
+{% block dialogs %}
+<!-- ===== Delete confirmation ===== -->
+<dialog class="card" data-delete-dialog aria-labelledby="delete-dialog-title">
+    <h2 id="delete-dialog-title">{{ ico.icon('trash', 18) }} Delete agent?</h2>
+
+    <p class="submission-message">
+        Are you sure you want to delete <strong data-delete-name></strong>?
+        Any properties assigned to this agent remain - only the agent link is removed.
+    </p>
+
+    <span class="input-group">
+        <button type="button" class="btn-cancel" data-dialog-cancel>Cancel</button>
+        <span class="user-info" aria-hidden="true"></span>
+        <button type="button" class="btn-danger" data-dialog-confirm>Delete agent</button>
+    </span>
+</dialog>
+{% endblock %}

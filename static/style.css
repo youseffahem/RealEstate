@@ -3261,6 +3261,36 @@ html {
     box-shadow: inset 0 0 0 1px rgba(177, 78, 255, 0.24);
 }
 
+/* ===== Inquiry status badges (Phase 6) =====
+   Same static-pill language as the property status badges above, keyed
+   off the inquiries.status ENUM values (New / Contacted / Closed). */
+.badge-status-new {
+    color: var(--neon-cyan);
+    background: rgba(0, 245, 255, 0.12);
+    box-shadow: inset 0 0 0 1px rgba(0, 245, 255, 0.24);
+}
+
+.badge-status-contacted {
+    color: #fbbf24;
+    background: rgba(251, 191, 36, 0.12);
+    box-shadow: inset 0 0 0 1px rgba(251, 191, 36, 0.26);
+}
+
+.badge-status-closed {
+    color: var(--success);
+    background: var(--success-bg);
+    box-shadow: inset 0 0 0 1px rgba(52, 211, 153, 0.24);
+}
+
+/* Clamp a long inquiry message to a few lines on the Inquiries list card,
+   instead of stretching the whole card to fit it. */
+.inquiry-message-preview {
+    display: -webkit-box;
+    -webkit-line-clamp: 3;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+}
+
 
 /* ===== Filter bar ===== */
 .filter-bar {
