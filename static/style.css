@@ -251,6 +251,20 @@ h1 {
     }
 }
 
+/* .card:hover swaps `animation` to cardInnerPulse so cardSlideUp lets go of
+   `transform` (see the 3D TILT comment in script.js). But that swap runs
+   both ways: leaving hover hands `animation` back to this rule's
+   `cardSlideUp ... both`, which the browser treats as a brand new
+   animation and replays in full - the card would flash back to
+   opacity: 0 / translateY(50px) every time the mouse left it. Once
+   cardSlideUp's one-time entrance play is actually done, script.js marks
+   the card `.card-settled`, and this (same specificity as `.card:hover`,
+   declared earlier so hover still wins the tie) keeps that stale
+   animation from ever being reassigned. */
+.card.card-settled {
+    animation: none;
+}
+
 /* Card hover: lift + glow border */
 .card:hover {
     border-color: rgba(124, 92, 252, 0.3);
@@ -3304,7 +3318,8 @@ html {
 }
 
 .filter-bar select,
-.filter-bar input[type="number"] {
+.filter-bar input[type="number"],
+.filter-bar input[type="search"] {
     background: rgba(10, 10, 20, 0.6);
     border: 1px solid var(--border);
     border-radius: var(--radius-sm);
@@ -3315,8 +3330,21 @@ html {
     transition: border-color 0.3s ease, box-shadow 0.3s ease;
 }
 
+/* type="search" carries its own UA chrome (white fill, appearance) that the
+   rule above doesn't fully strip on its own - neutralize it explicitly so
+   the dark/glass styling above actually shows through. */
+.filter-bar input[type="search"] {
+    -webkit-appearance: none;
+    appearance: none;
+}
+
+.filter-bar input[type="search"]::placeholder {
+    color: var(--text-muted);
+}
+
 .filter-bar select:focus,
-.filter-bar input[type="number"]:focus {
+.filter-bar input[type="number"]:focus,
+.filter-bar input[type="search"]:focus {
     outline: none;
     border-color: var(--accent);
     box-shadow: 0 0 0 3px var(--accent-glow);

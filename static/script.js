@@ -647,6 +647,17 @@
         Array.prototype.forEach.call(tiltTargets(), function (card) {
             var frame = null;
 
+            /* The one-time cardSlideUp entrance animation (style.css) has
+               to let go of `transform` once it's done, or the next time
+               `.card:hover` hands `animation` back to it on mouseleave it
+               replays from opacity: 0 instead of just staying put - see
+               the .card-settled rule in style.css. */
+            card.addEventListener('animationend', function (event) {
+                if (event.animationName === 'cardSlideUp') {
+                    card.classList.add('card-settled');
+                }
+            });
+
             card.addEventListener('mousemove', function (event) {
                 if (frame) {
                     return;
