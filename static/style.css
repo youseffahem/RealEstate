@@ -11,24 +11,65 @@
     --bg: #0a0a14;
     --surface: #141428;
     --surface-hover: #1e1e3a;
-    --border: rgba(255, 255, 255, 0.06);
+    --border: rgba(var(--fx-neutral-rgb), 0.06);
     --text: #e8e8f0;
     --text-muted: #8888a8;
     --accent: #7c5cfc;
     --accent-hover: #9478ff;
-    --accent-glow: rgba(124, 92, 252, 0.25);
+    --accent-glow: rgba(var(--fx-violet-rgb), 0.25);
     --success: #34d399;
-    --success-bg: rgba(52, 211, 153, 0.1);
+    --success-bg: rgba(var(--fx-success-rgb), 0.1);
     --error: #f87171;
-    --error-bg: rgba(248, 113, 113, 0.1);
+    --error-bg: rgba(var(--fx-error-rgb), 0.1);
     --radius: 14px;
     --radius-sm: 10px;
     --neon-cyan: #00f5ff;
     --neon-pink: #ff00aa;
     --neon-purple: #b14eff;
-    --aurora-1: rgba(124, 92, 252, 0.15);
-    --aurora-2: rgba(0, 245, 255, 0.1);
-    --aurora-3: rgba(255, 0, 170, 0.08);
+    --aurora-1: rgba(var(--fx-violet-rgb), 0.15);
+    --aurora-2: rgba(var(--fx-cyan-rgb), 0.1);
+    --aurora-3: rgba(var(--fx-pink-rgb), 0.08);
+
+    /* ===== Theming: --fx-* tokens =====
+       Every rule that used to spell these out in full used the exact
+       literal now on the right of each line - moving them here changes
+       nothing about how dark mode renders (same numbers everywhere they're
+       read), it only gives [data-theme="light"] near the end of this file
+       a single place to override them. The "-rgb" ones hold a bare
+       "R, G, B" triple rather than a full color, so one override reaches
+       every rgba(...) built from it regardless of what alpha that rule
+       uses: rgba(var(--fx-violet-rgb), 0.3) expands to exactly the same
+       pixels as the rgba(124, 92, 252, 0.3) literal it replaces. */
+    --fx-violet-rgb: 124, 92, 252;
+    --fx-cyan-rgb: 0, 245, 255;
+    --fx-pink-rgb: 255, 0, 170;
+    --fx-purple-rgb: 177, 78, 255;
+    --fx-success-rgb: 52, 211, 153;
+    --fx-error-rgb: 248, 113, 113;
+    /* A neutral wash used two ways: dark-on-dark rules that want a subtle
+       *lighter* fleck (borders, chart tracks, hover flashes, the card
+       shimmer) all read this triple as white. Light mode redefines it as
+       a dark cool tint instead, so the same rules read as a subtle
+       *darker* fleck - which is what "subtle neutral mark" means once the
+       surface underneath has turned from near-black to near-white. */
+    --fx-neutral-rgb: 255, 255, 255;
+    --fx-glass-1-rgb: 20, 20, 40;
+    --fx-glass-2-rgb: 30, 30, 58;
+    --fx-panel-rgb: 10, 10, 20;
+    --fx-panel-hover-rgb: 12, 12, 22;
+    --fx-panel-focus-rgb: 15, 15, 26;
+    --fx-backdrop-rgb: 6, 6, 16;
+    --fx-toast-1-rgb: 16, 22, 38;
+    --fx-toast-2-rgb: 22, 28, 48;
+    --fx-toast-err-1-rgb: 22, 16, 26;
+    --fx-toast-err-2-rgb: 30, 20, 34;
+    /* Orbs need their alpha to shift with the theme, not just their hue,
+       so each is one complete color rather than a triple. */
+    --fx-orb-1: rgba(var(--fx-violet-rgb), 0.08);
+    --fx-orb-2: rgba(var(--fx-cyan-rgb), 0.06);
+    --fx-orb-3: rgba(var(--fx-pink-rgb), 0.05);
+    --fx-orb-4: rgba(var(--fx-purple-rgb), 0.06);
+    --fx-sparkle: #fff;
 }
 
 /* ===== Aurora Animated Background ===== */
@@ -43,7 +84,7 @@ body {
     overflow-x: hidden;
     position: relative;
     background-image:
-        radial-gradient(ellipse 600px 400px at 50% 0%, rgba(124, 92, 252, 0.08), transparent),
+        radial-gradient(ellipse 600px 400px at 50% 0%, rgba(var(--fx-violet-rgb), 0.08), transparent),
         radial-gradient(ellipse 400px 300px at 80% 100%, rgba(99, 102, 241, 0.05), transparent);
 }
 
@@ -77,16 +118,16 @@ body::after {
     position: fixed;
     inset: 0;
     background-image:
-        radial-gradient(1.5px 1.5px at 10% 20%, rgba(124, 92, 252, 0.5), transparent),
-        radial-gradient(1px 1px at 30% 70%, rgba(0, 245, 255, 0.4), transparent),
-        radial-gradient(2px 2px at 50% 10%, rgba(255, 0, 170, 0.3), transparent),
-        radial-gradient(1px 1px at 70% 50%, rgba(124, 92, 252, 0.4), transparent),
-        radial-gradient(1.5px 1.5px at 90% 80%, rgba(0, 245, 255, 0.5), transparent),
-        radial-gradient(1px 1px at 15% 90%, rgba(255, 0, 170, 0.3), transparent),
-        radial-gradient(2px 2px at 85% 15%, rgba(124, 92, 252, 0.3), transparent),
-        radial-gradient(1px 1px at 45% 45%, rgba(0, 245, 255, 0.3), transparent),
-        radial-gradient(1.5px 1.5px at 60% 85%, rgba(255, 0, 170, 0.4), transparent),
-        radial-gradient(1px 1px at 25% 35%, rgba(124, 92, 252, 0.5), transparent);
+        radial-gradient(1.5px 1.5px at 10% 20%, rgba(var(--fx-violet-rgb), 0.5), transparent),
+        radial-gradient(1px 1px at 30% 70%, rgba(var(--fx-cyan-rgb), 0.4), transparent),
+        radial-gradient(2px 2px at 50% 10%, rgba(var(--fx-pink-rgb), 0.3), transparent),
+        radial-gradient(1px 1px at 70% 50%, rgba(var(--fx-violet-rgb), 0.4), transparent),
+        radial-gradient(1.5px 1.5px at 90% 80%, rgba(var(--fx-cyan-rgb), 0.5), transparent),
+        radial-gradient(1px 1px at 15% 90%, rgba(var(--fx-pink-rgb), 0.3), transparent),
+        radial-gradient(2px 2px at 85% 15%, rgba(var(--fx-violet-rgb), 0.3), transparent),
+        radial-gradient(1px 1px at 45% 45%, rgba(var(--fx-cyan-rgb), 0.3), transparent),
+        radial-gradient(1.5px 1.5px at 60% 85%, rgba(var(--fx-pink-rgb), 0.4), transparent),
+        radial-gradient(1px 1px at 25% 35%, rgba(var(--fx-violet-rgb), 0.5), transparent);
     animation: particleDrift 30s linear infinite;
     pointer-events: none;
     z-index: 0;
@@ -206,18 +247,18 @@ h1 {
 .flash-success {
     background: var(--success-bg);
     color: var(--success);
-    border: 1px solid rgba(52, 211, 153, 0.2);
+    border: 1px solid rgba(var(--fx-success-rgb), 0.2);
 }
 
 .flash-error {
     background: var(--error-bg);
     color: var(--error);
-    border: 1px solid rgba(248, 113, 113, 0.2);
+    border: 1px solid rgba(var(--fx-error-rgb), 0.2);
 }
 
 /* ===== Cards - Glassmorphism + 3D Tilt ===== */
 .card {
-    background: linear-gradient(135deg, rgba(20, 20, 40, 0.8), rgba(30, 30, 58, 0.6));
+    background: linear-gradient(135deg, rgba(var(--fx-glass-1-rgb), 0.8), rgba(var(--fx-glass-2-rgb), 0.6));
     backdrop-filter: blur(20px);
     -webkit-backdrop-filter: blur(20px);
     border: 1px solid var(--border);
@@ -267,7 +308,7 @@ h1 {
 
 /* Card hover: lift + glow border */
 .card:hover {
-    border-color: rgba(124, 92, 252, 0.3);
+    border-color: rgba(var(--fx-violet-rgb), 0.3);
     transform: translateY(-4px);
     box-shadow:
         0 20px 50px rgba(0, 0, 0, 0.3),
@@ -314,9 +355,9 @@ h1 {
     background: linear-gradient(
         90deg,
         transparent,
-        rgba(255, 255, 255, 0.03),
-        rgba(255, 255, 255, 0.06),
-        rgba(255, 255, 255, 0.03),
+        rgba(var(--fx-neutral-rgb), 0.03),
+        rgba(var(--fx-neutral-rgb), 0.06),
+        rgba(var(--fx-neutral-rgb), 0.03),
         transparent
     );
     transform: skewX(-20deg);
@@ -399,7 +440,7 @@ h1 {
 .input-group input {
     flex: 1;
     padding: 12px 16px;
-    background: rgba(10, 10, 20, 0.6);
+    background: rgba(var(--fx-panel-rgb), 0.6);
     border: 1px solid var(--border);
     border-radius: var(--radius-sm);
     color: var(--text);
@@ -424,8 +465,8 @@ h1 {
 
 .input-group input:focus {
     border-color: var(--accent);
-    box-shadow: 0 0 0 3px var(--accent-glow), 0 0 20px rgba(124, 92, 252, 0.15);
-    background: rgba(15, 15, 26, 0.8);
+    box-shadow: 0 0 0 3px var(--accent-glow), 0 0 20px rgba(var(--fx-violet-rgb), 0.15);
+    background: rgba(var(--fx-panel-focus-rgb), 0.8);
     transform: scale(1.01);
 }
 
@@ -482,7 +523,7 @@ h1 {
 
 .input-group button:hover {
     background: linear-gradient(135deg, var(--accent-hover), #818cf8);
-    box-shadow: 0 4px 25px var(--accent-glow), 0 0 40px rgba(124, 92, 252, 0.2);
+    box-shadow: 0 4px 25px var(--accent-glow), 0 0 40px rgba(var(--fx-violet-rgb), 0.2);
     transform: translateY(-2px);
 }
 
@@ -529,7 +570,7 @@ h1 {
 }
 
 .user-item:hover {
-    background: rgba(124, 92, 252, 0.04);
+    background: rgba(var(--fx-violet-rgb), 0.04);
     transform: translateX(4px);
 }
 
@@ -576,7 +617,7 @@ h1 {
 
 .user-item:hover .user-avatar {
     transform: scale(1.15) rotate(5deg);
-    box-shadow: 0 0 20px var(--accent-glow), 0 0 40px rgba(0, 245, 255, 0.15);
+    box-shadow: 0 0 20px var(--accent-glow), 0 0 40px rgba(var(--fx-cyan-rgb), 0.15);
 }
 
 .user-info {
@@ -651,7 +692,7 @@ h1 {
 }
 
 .btn-icon:hover {
-    border-color: rgba(255, 255, 255, 0.15);
+    border-color: rgba(var(--fx-neutral-rgb), 0.15);
     transform: scale(1.1);
 }
 
@@ -663,7 +704,7 @@ h1 {
 .btn-edit:hover {
     color: var(--accent-hover);
     background: var(--accent-glow);
-    border-color: rgba(124, 92, 252, 0.3);
+    border-color: rgba(var(--fx-violet-rgb), 0.3);
     box-shadow: 0 0 15px var(--accent-glow);
     animation: editWiggle 0.5s ease;
 }
@@ -677,8 +718,8 @@ h1 {
 .btn-delete:hover {
     color: var(--error);
     background: var(--error-bg);
-    border-color: rgba(248, 113, 113, 0.3);
-    box-shadow: 0 0 15px rgba(248, 113, 113, 0.2);
+    border-color: rgba(var(--fx-error-rgb), 0.3);
+    box-shadow: 0 0 15px rgba(var(--fx-error-rgb), 0.2);
     animation: deleteShake 0.4s ease;
 }
 
@@ -750,7 +791,7 @@ h1 {
 
 .btn-save:hover {
     background: #2ec48b !important;
-    box-shadow: 0 4px 20px rgba(52, 211, 153, 0.3), 0 0 30px rgba(52, 211, 153, 0.15) !important;
+    box-shadow: 0 4px 20px rgba(var(--fx-success-rgb), 0.3), 0 0 30px rgba(var(--fx-success-rgb), 0.15) !important;
     transform: translateY(-1px);
 }
 
@@ -764,7 +805,7 @@ h1 {
 
 .btn-cancel:hover {
     background: var(--surface-hover) !important;
-    border-color: rgba(255, 255, 255, 0.12) !important;
+    border-color: rgba(var(--fx-neutral-rgb), 0.12) !important;
     color: var(--text) !important;
     box-shadow: none !important;
     transform: translateY(-1px);
@@ -775,7 +816,7 @@ h1 {
     display: flex;
     gap: 6px;
     margin-bottom: 28px;
-    background: linear-gradient(135deg, rgba(20, 20, 40, 0.8), rgba(30, 30, 58, 0.6));
+    background: linear-gradient(135deg, rgba(var(--fx-glass-1-rgb), 0.8), rgba(var(--fx-glass-2-rgb), 0.6));
     backdrop-filter: blur(20px);
     -webkit-backdrop-filter: blur(20px);
     border: 1px solid var(--border);
@@ -835,13 +876,13 @@ h1 {
 .nav-link.active {
     color: #fff;
     background: linear-gradient(135deg, var(--accent), #6366f1);
-    box-shadow: 0 2px 20px var(--accent-glow), 0 0 40px rgba(124, 92, 252, 0.15);
+    box-shadow: 0 2px 20px var(--accent-glow), 0 0 40px rgba(var(--fx-violet-rgb), 0.15);
     animation: activeNavPulse 3s ease-in-out infinite;
 }
 
 @keyframes activeNavPulse {
-    0%, 100% { box-shadow: 0 2px 20px var(--accent-glow), 0 0 40px rgba(124, 92, 252, 0.15); }
-    50% { box-shadow: 0 2px 30px var(--accent-glow), 0 0 60px rgba(124, 92, 252, 0.25); }
+    0%, 100% { box-shadow: 0 2px 20px var(--accent-glow), 0 0 40px rgba(var(--fx-violet-rgb), 0.15); }
+    50% { box-shadow: 0 2px 30px var(--accent-glow), 0 0 60px rgba(var(--fx-violet-rgb), 0.25); }
 }
 
 .nav-link.active::after {
@@ -899,7 +940,7 @@ h1 {
 .form-group textarea {
     width: 100%;
     padding: 12px 16px;
-    background: rgba(10, 10, 20, 0.6);
+    background: rgba(var(--fx-panel-rgb), 0.6);
     border: 1px solid var(--border);
     border-radius: var(--radius-sm);
     color: var(--text);
@@ -927,8 +968,8 @@ h1 {
 .form-group input:focus,
 .form-group textarea:focus {
     border-color: var(--accent);
-    box-shadow: 0 0 0 3px var(--accent-glow), 0 0 20px rgba(124, 92, 252, 0.15);
-    background: rgba(15, 15, 26, 0.8);
+    box-shadow: 0 0 0 3px var(--accent-glow), 0 0 20px rgba(var(--fx-violet-rgb), 0.15);
+    background: rgba(var(--fx-panel-focus-rgb), 0.8);
     transform: scale(1.01);
 }
 
@@ -982,7 +1023,7 @@ h1 {
 
 .btn-submit:hover {
     background-size: 200% 200%;
-    box-shadow: 0 4px 30px var(--accent-glow), 0 0 50px rgba(124, 92, 252, 0.2);
+    box-shadow: 0 4px 30px var(--accent-glow), 0 0 50px rgba(var(--fx-violet-rgb), 0.2);
     transform: translateY(-3px) scale(1.01);
 }
 
@@ -995,7 +1036,7 @@ h1 {
 .submission-message {
     margin-top: 10px;
     padding: 10px 14px;
-    background: rgba(10, 10, 20, 0.4);
+    background: rgba(var(--fx-panel-rgb), 0.4);
     border-radius: 8px;
     font-size: 0.85rem;
     color: var(--text-muted);
@@ -1019,8 +1060,8 @@ h1 {
 }
 
 .submission-message:hover {
-    border-color: rgba(124, 92, 252, 0.2);
-    background: rgba(15, 15, 30, 0.5);
+    border-color: rgba(var(--fx-violet-rgb), 0.2);
+    background: rgba(var(--fx-panel-focus-rgb), 0.5);
 }
 
 /* ===== Scrollbar Styling ===== */
@@ -1033,17 +1074,17 @@ h1 {
 }
 
 ::-webkit-scrollbar-thumb {
-    background: rgba(124, 92, 252, 0.3);
+    background: rgba(var(--fx-violet-rgb), 0.3);
     border-radius: 3px;
 }
 
 ::-webkit-scrollbar-thumb:hover {
-    background: rgba(124, 92, 252, 0.5);
+    background: rgba(var(--fx-violet-rgb), 0.5);
 }
 
 /* ===== Selection Color ===== */
 ::selection {
-    background: rgba(124, 92, 252, 0.3);
+    background: rgba(var(--fx-violet-rgb), 0.3);
     color: #fff;
 }
 
@@ -1192,7 +1233,7 @@ h1:hover {
 /* Focus ring animation */
 @keyframes focusRing {
     0% { box-shadow: 0 0 0 3px var(--accent-glow); }
-    50% { box-shadow: 0 0 0 6px rgba(124, 92, 252, 0.1); }
+    50% { box-shadow: 0 0 0 6px rgba(var(--fx-violet-rgb), 0.1); }
     100% { box-shadow: 0 0 0 3px var(--accent-glow); }
 }
 
@@ -1219,10 +1260,10 @@ h1 {
 
 h1:hover {
     text-shadow:
-        0 0 10px rgba(124, 92, 252, 0.5),
-        0 0 30px rgba(124, 92, 252, 0.3),
-        0 0 60px rgba(0, 245, 255, 0.2),
-        0 0 100px rgba(124, 92, 252, 0.1);
+        0 0 10px rgba(var(--fx-violet-rgb), 0.5),
+        0 0 30px rgba(var(--fx-violet-rgb), 0.3),
+        0 0 60px rgba(var(--fx-cyan-rgb), 0.2),
+        0 0 100px rgba(var(--fx-violet-rgb), 0.1);
     filter: brightness(1.3);
     animation: textShimmer 4s ease-in-out infinite, glitch 3s ease-in-out infinite;
 }
@@ -1265,7 +1306,7 @@ h1:hover {
 .subtitle:hover {
     color: var(--neon-cyan);
     letter-spacing: 0.03em;
-    text-shadow: 0 0 15px rgba(0, 245, 255, 0.3);
+    text-shadow: 0 0 15px rgba(var(--fx-cyan-rgb), 0.3);
 }
 
 /* ===== Nav Link - Morphing Background + Neon Border ===== */
@@ -1276,10 +1317,10 @@ h1:hover {
 }
 
 .nav-link:not(.active):hover {
-    background: linear-gradient(135deg, rgba(124, 92, 252, 0.1), rgba(0, 245, 255, 0.05), rgba(255, 0, 170, 0.05));
+    background: linear-gradient(135deg, rgba(var(--fx-violet-rgb), 0.1), rgba(var(--fx-cyan-rgb), 0.05), rgba(var(--fx-pink-rgb), 0.05));
     background-size: 300% 300%;
     animation: navMorphBg 2s ease infinite;
-    box-shadow: inset 0 0 20px rgba(124, 92, 252, 0.05), 0 0 15px rgba(124, 92, 252, 0.1);
+    box-shadow: inset 0 0 20px rgba(var(--fx-violet-rgb), 0.05), 0 0 15px rgba(var(--fx-violet-rgb), 0.1);
 }
 
 .nav-link:not(.active):hover::before {
@@ -1292,15 +1333,15 @@ h1:hover {
 
 /* ===== Nav Bar - Container glow on child hover ===== */
 .nav-bar:hover {
-    border-color: rgba(124, 92, 252, 0.15);
-    box-shadow: 0 0 30px rgba(124, 92, 252, 0.08), inset 0 0 20px rgba(124, 92, 252, 0.03);
+    border-color: rgba(var(--fx-violet-rgb), 0.15);
+    box-shadow: 0 0 30px rgba(var(--fx-violet-rgb), 0.08), inset 0 0 20px rgba(var(--fx-violet-rgb), 0.03);
 }
 
 /* ===== Card - Enhanced hover with inner glow ripples ===== */
 @keyframes cardInnerPulse {
-    0% { box-shadow: inset 0 0 0 rgba(124, 92, 252, 0), 0 20px 50px rgba(0,0,0,0.3); }
-    50% { box-shadow: inset 0 0 40px rgba(124, 92, 252, 0.04), 0 25px 60px rgba(0,0,0,0.35); }
-    100% { box-shadow: inset 0 0 0 rgba(124, 92, 252, 0), 0 20px 50px rgba(0,0,0,0.3); }
+    0% { box-shadow: inset 0 0 0 rgba(var(--fx-violet-rgb), 0), 0 20px 50px rgba(0,0,0,0.3); }
+    50% { box-shadow: inset 0 0 40px rgba(var(--fx-violet-rgb), 0.04), 0 25px 60px rgba(0,0,0,0.35); }
+    100% { box-shadow: inset 0 0 0 rgba(var(--fx-violet-rgb), 0), 0 20px 50px rgba(0,0,0,0.3); }
 }
 
 .card:hover {
@@ -1320,15 +1361,15 @@ h1:hover {
 .form-group input:hover,
 .form-group textarea:hover {
     border-color: var(--accent);
-    background: rgba(12, 12, 22, 0.7);
-    box-shadow: 0 0 15px rgba(124, 92, 252, 0.1);
+    background: rgba(var(--fx-panel-hover-rgb), 0.7);
+    box-shadow: 0 0 15px rgba(var(--fx-violet-rgb), 0.1);
     animation: rainbowBorder 3s linear infinite;
 }
 
 /* ===== Textarea - Breathing Effect on Hover ===== */
 @keyframes textareaBreathe {
-    0%, 100% { box-shadow: 0 0 0 rgba(124, 92, 252, 0); }
-    50% { box-shadow: 0 0 20px rgba(124, 92, 252, 0.08); }
+    0%, 100% { box-shadow: 0 0 0 rgba(var(--fx-violet-rgb), 0); }
+    50% { box-shadow: 0 0 20px rgba(var(--fx-violet-rgb), 0.08); }
 }
 
 .form-group textarea:hover {
@@ -1358,7 +1399,7 @@ h1:hover {
 
 .user-item:hover .user-name {
     color: #fff;
-    text-shadow: 0 0 8px var(--accent-glow), 0 0 20px rgba(124, 92, 252, 0.2);
+    text-shadow: 0 0 8px var(--accent-glow), 0 0 20px rgba(var(--fx-violet-rgb), 0.2);
     transform: translateX(3px);
     letter-spacing: 0.01em;
 }
@@ -1370,7 +1411,7 @@ h1:hover {
 }
 
 .user-item:hover .user-date {
-    color: rgba(0, 245, 255, 0.6);
+    color: rgba(var(--fx-cyan-rgb), 0.6);
     transform: translateX(3px);
 }
 
@@ -1403,10 +1444,10 @@ h1:hover {
 }
 
 .user-item:hover {
-    background: rgba(124, 92, 252, 0.06);
+    background: rgba(var(--fx-violet-rgb), 0.06);
     transform: translateX(6px);
     box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15);
-    border-color: rgba(124, 92, 252, 0.1);
+    border-color: rgba(var(--fx-violet-rgb), 0.1);
 }
 
 /* ===== User Avatar - Multi-effect on Hover ===== */
@@ -1419,8 +1460,8 @@ h1:hover {
     transform: scale(1.2) rotate(5deg);
     box-shadow:
         0 0 15px var(--accent-glow),
-        0 0 30px rgba(0, 245, 255, 0.15),
-        0 0 45px rgba(255, 0, 170, 0.1);
+        0 0 30px rgba(var(--fx-cyan-rgb), 0.15),
+        0 0 45px rgba(var(--fx-pink-rgb), 0.1);
     border: 2px solid rgba(255, 255, 255, 0.2);
 }
 
@@ -1439,15 +1480,15 @@ h1:hover {
     left: -100%;
     width: 100%;
     height: 100%;
-    background: linear-gradient(90deg, transparent, rgba(124, 92, 252, 0.05), transparent);
+    background: linear-gradient(90deg, transparent, rgba(var(--fx-violet-rgb), 0.05), transparent);
     transition: none;
 }
 
 .submission-message:hover {
-    border-color: rgba(124, 92, 252, 0.3);
-    background: rgba(20, 20, 40, 0.6);
+    border-color: rgba(var(--fx-violet-rgb), 0.3);
+    background: rgba(var(--fx-glass-1-rgb), 0.6);
     transform: translateX(4px) scale(1.01);
-    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.2), 0 0 15px rgba(124, 92, 252, 0.05);
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.2), 0 0 15px rgba(var(--fx-violet-rgb), 0.05);
     color: var(--text);
     padding-left: 18px;
 }
@@ -1470,8 +1511,8 @@ h1:hover {
 
 .badge:hover {
     transform: scale(1.3) rotate(10deg);
-    background: rgba(124, 92, 252, 0.4);
-    box-shadow: 0 0 20px var(--accent-glow), 0 0 40px rgba(124, 92, 252, 0.15);
+    background: rgba(var(--fx-violet-rgb), 0.4);
+    box-shadow: 0 0 20px var(--accent-glow), 0 0 40px rgba(var(--fx-violet-rgb), 0.15);
     animation: badgeBounce 0.5s cubic-bezier(0.68, -0.55, 0.27, 1.55);
 }
 
@@ -1486,8 +1527,8 @@ h1:hover {
 .btn-submit:hover {
     box-shadow:
         0 4px 30px var(--accent-glow),
-        0 0 50px rgba(124, 92, 252, 0.25),
-        0 0 80px rgba(0, 245, 255, 0.1),
+        0 0 50px rgba(var(--fx-violet-rgb), 0.25),
+        0 0 80px rgba(var(--fx-cyan-rgb), 0.1),
         inset 0 0 30px rgba(255, 255, 255, 0.05);
     transform: translateY(-4px) scale(1.02);
     letter-spacing: 0.05em;
@@ -1508,8 +1549,8 @@ h1:hover {
 .input-group button:hover {
     box-shadow:
         0 4px 25px var(--accent-glow),
-        0 0 40px rgba(124, 92, 252, 0.2),
-        0 0 60px rgba(124, 92, 252, 0.1);
+        0 0 40px rgba(var(--fx-violet-rgb), 0.2),
+        0 0 60px rgba(var(--fx-violet-rgb), 0.1);
     letter-spacing: 0.02em;
 }
 
@@ -1525,17 +1566,17 @@ h1:hover {
 }
 
 .flash-success:hover {
-    box-shadow: 0 0 25px rgba(52, 211, 153, 0.2), 0 4px 15px rgba(0, 0, 0, 0.2);
+    box-shadow: 0 0 25px rgba(var(--fx-success-rgb), 0.2), 0 4px 15px rgba(0, 0, 0, 0.2);
 }
 
 .flash-error:hover {
-    box-shadow: 0 0 25px rgba(248, 113, 113, 0.2), 0 4px 15px rgba(0, 0, 0, 0.2);
+    box-shadow: 0 0 25px rgba(var(--fx-error-rgb), 0.2), 0 4px 15px rgba(0, 0, 0, 0.2);
 }
 
 /* ===== Edit/Save/Cancel Buttons - Hover Upgrades ===== */
 .btn-save:hover {
     transform: translateY(-2px) scale(1.03) !important;
-    box-shadow: 0 4px 25px rgba(52, 211, 153, 0.35), 0 0 40px rgba(52, 211, 153, 0.15) !important;
+    box-shadow: 0 4px 25px rgba(var(--fx-success-rgb), 0.35), 0 0 40px rgba(var(--fx-success-rgb), 0.15) !important;
     letter-spacing: 0.03em;
 }
 
@@ -1627,16 +1668,16 @@ h1:hover {
 
 /* ===== Electric pulse border ===== */
 @keyframes electricPulse {
-    0%, 100% { box-shadow: 0 0 5px rgba(124, 92, 252, 0.2); }
-    25% { box-shadow: 0 0 10px rgba(0, 245, 255, 0.3), 0 0 20px rgba(0, 245, 255, 0.1); }
-    50% { box-shadow: 0 0 15px rgba(255, 0, 170, 0.3), 0 0 30px rgba(255, 0, 170, 0.1); }
-    75% { box-shadow: 0 0 10px rgba(177, 78, 255, 0.3), 0 0 20px rgba(177, 78, 255, 0.1); }
+    0%, 100% { box-shadow: 0 0 5px rgba(var(--fx-violet-rgb), 0.2); }
+    25% { box-shadow: 0 0 10px rgba(var(--fx-cyan-rgb), 0.3), 0 0 20px rgba(var(--fx-cyan-rgb), 0.1); }
+    50% { box-shadow: 0 0 15px rgba(var(--fx-pink-rgb), 0.3), 0 0 30px rgba(var(--fx-pink-rgb), 0.1); }
+    75% { box-shadow: 0 0 10px rgba(var(--fx-purple-rgb), 0.3), 0 0 20px rgba(var(--fx-purple-rgb), 0.1); }
 }
 
 /* ===== Neon text flicker ===== */
 @keyframes neonFlicker {
     0%, 19%, 21%, 23%, 25%, 54%, 56%, 100% {
-        text-shadow: 0 0 5px rgba(124, 92, 252, 0.5), 0 0 20px rgba(124, 92, 252, 0.3);
+        text-shadow: 0 0 5px rgba(var(--fx-violet-rgb), 0.5), 0 0 20px rgba(var(--fx-violet-rgb), 0.3);
     }
     20%, 24%, 55% {
         text-shadow: none;
@@ -1654,13 +1695,13 @@ h1:hover {
 
 /* ===== Color orbit for borders ===== */
 @keyframes colorOrbit {
-    0% { border-color: rgba(124, 92, 252, 0.3); }
-    16% { border-color: rgba(0, 245, 255, 0.3); }
-    33% { border-color: rgba(255, 0, 170, 0.3); }
-    50% { border-color: rgba(177, 78, 255, 0.3); }
-    66% { border-color: rgba(52, 211, 153, 0.3); }
+    0% { border-color: rgba(var(--fx-violet-rgb), 0.3); }
+    16% { border-color: rgba(var(--fx-cyan-rgb), 0.3); }
+    33% { border-color: rgba(var(--fx-pink-rgb), 0.3); }
+    50% { border-color: rgba(var(--fx-purple-rgb), 0.3); }
+    66% { border-color: rgba(var(--fx-success-rgb), 0.3); }
     83% { border-color: rgba(99, 102, 241, 0.3); }
-    100% { border-color: rgba(124, 92, 252, 0.3); }
+    100% { border-color: rgba(var(--fx-violet-rgb), 0.3); }
 }
 
 /* ===== Typewriter cursor blink ===== */
@@ -1748,13 +1789,13 @@ h1:hover {
 }
 
 .mouse-glow-element.mouse-near {
-    box-shadow: 0 0 20px rgba(124, 92, 252, 0.15);
-    border-color: rgba(124, 92, 252, 0.2);
+    box-shadow: 0 0 20px rgba(var(--fx-violet-rgb), 0.15);
+    border-color: rgba(var(--fx-violet-rgb), 0.2);
 }
 
 .mouse-glow-element.mouse-over {
-    box-shadow: 0 0 30px rgba(124, 92, 252, 0.25), 0 0 60px rgba(124, 92, 252, 0.1);
-    border-color: rgba(124, 92, 252, 0.4);
+    box-shadow: 0 0 30px rgba(var(--fx-violet-rgb), 0.25), 0 0 60px rgba(var(--fx-violet-rgb), 0.1);
+    border-color: rgba(var(--fx-violet-rgb), 0.4);
 }
 
 /* ===== Text scatter effect helper ===== */
@@ -1767,7 +1808,7 @@ h1:hover {
 .char-scatter:hover {
     transform: translateY(-6px) rotate(5deg) scale(1.2);
     color: var(--neon-cyan);
-    text-shadow: 0 0 10px rgba(0, 245, 255, 0.5);
+    text-shadow: 0 0 10px rgba(var(--fx-cyan-rgb), 0.5);
 }
 
 /* ===== Sparkle overlay helper ===== */
@@ -1775,7 +1816,7 @@ h1:hover {
     position: absolute;
     width: 6px;
     height: 6px;
-    background: #fff;
+    background: var(--fx-sparkle);
     border-radius: 50%;
     pointer-events: none;
     animation: sparkleFade 0.6s ease-out forwards;
@@ -1866,6 +1907,45 @@ h1:hover {
 }
 
 /* ================================================================
+   THEME TOGGLE
+   ----------------------------------------------------------------
+   A .btn-icon living inside .nav-bar, right after the last link. Every
+   other .nav-link is flex: 1 so the five of them share the bar evenly;
+   this one opts back out to its natural width so it doesn't steal room
+   from the links or grow into a fifth "column". Its own color/border/
+   hover glow all come free from .btn-icon - only the icon-swap and the
+   theme-aware hover tint are new here.
+   ================================================================ */
+.theme-toggle {
+    flex: 0 0 auto;
+    margin-left: 4px;
+}
+
+.theme-toggle-icon {
+    display: flex;
+}
+
+/* Dark is the default: no [data-theme] is needed to show the moon. */
+.theme-toggle-sun {
+    display: none;
+}
+
+[data-theme="light"] .theme-toggle-moon {
+    display: none;
+}
+
+[data-theme="light"] .theme-toggle-sun {
+    display: flex;
+}
+
+[data-theme="light"] .theme-toggle:hover {
+    color: var(--accent-hover);
+    background: var(--accent-glow);
+    border-color: rgba(var(--fx-violet-rgb), 0.3);
+    box-shadow: 0 0 15px var(--accent-glow);
+}
+
+/* ================================================================
    PHASE 2 - DASHBOARD LAYOUT
    ----------------------------------------------------------------
    Appended block. Nothing above this line was changed.
@@ -1913,7 +1993,7 @@ h1:hover {
 
 /* ===== Modal backdrop ===== */
 dialog::backdrop {
-    background: rgba(6, 6, 16, 0.66);
+    background: rgba(var(--fx-backdrop-rgb), 0.66);
     backdrop-filter: blur(6px);
     -webkit-backdrop-filter: blur(6px);
 }
@@ -1927,7 +2007,7 @@ dialog::backdrop {
 
 .btn-danger:hover {
     background: linear-gradient(135deg, #fca5a5, #f2547d) !important;
-    box-shadow: 0 4px 25px rgba(248, 113, 113, 0.35) !important;
+    box-shadow: 0 4px 25px rgba(var(--fx-error-rgb), 0.35) !important;
 }
 
 /* ===== Phones: stack each product row into a card ===== */
@@ -2029,7 +2109,7 @@ a.brand-aura {
         radial-gradient(closest-side ellipse at 44% 50%, rgba(255, 40, 62, 0.42), rgba(255, 40, 62, 0) 100%),
         radial-gradient(closest-side ellipse at 63% 38%, rgba(220, 20, 60, 0.32), rgba(220, 20, 60, 0) 100%),
         radial-gradient(closest-side ellipse at 30% 64%, rgba(255, 47, 109, 0.24), rgba(255, 47, 109, 0) 100%),
-        radial-gradient(closest-side ellipse at 74% 68%, rgba(177, 78, 255, 0.16), rgba(177, 78, 255, 0) 100%);
+        radial-gradient(closest-side ellipse at 74% 68%, rgba(var(--fx-purple-rgb), 0.16), rgba(var(--fx-purple-rgb), 0) 100%);
     filter: blur(12px);
     animation: auroraShift 30s ease-in-out infinite alternate;
 }
@@ -2112,7 +2192,7 @@ a.brand-aura {
 .filter-bar input:focus-visible,
 .image-url-row input:focus-visible,
 [data-search-input]:focus-visible {
-    outline: 2px solid rgba(0, 245, 255, 0.6);
+    outline: 2px solid rgba(var(--fx-cyan-rgb), 0.6);
     outline-offset: 2px;
 }
 
@@ -2168,14 +2248,14 @@ a.brand-aura {
    before the cursor ever reaches them. The hover states are untouched. */
 .btn-icon.btn-edit {
     color: #a894ff;
-    border-color: rgba(124, 92, 252, 0.28);
-    background: rgba(124, 92, 252, 0.08);
+    border-color: rgba(var(--fx-violet-rgb), 0.28);
+    background: rgba(var(--fx-violet-rgb), 0.08);
 }
 
 .btn-icon.btn-delete {
     color: #f9a1a1;
-    border-color: rgba(248, 113, 113, 0.26);
-    background: rgba(248, 113, 113, 0.07);
+    border-color: rgba(var(--fx-error-rgb), 0.26);
+    background: rgba(var(--fx-error-rgb), 0.07);
 }
 
 
@@ -2243,20 +2323,20 @@ a.brand-aura {
 /* --- per-card accent, so the four metrics read as four things --- */
 .stat-accent-cyan .stat-icon {
     color: var(--neon-cyan);
-    background: rgba(0, 245, 255, 0.10);
-    box-shadow: inset 0 0 0 1px rgba(0, 245, 255, 0.20);
+    background: rgba(var(--fx-cyan-rgb), 0.10);
+    box-shadow: inset 0 0 0 1px rgba(var(--fx-cyan-rgb), 0.20);
 }
 
 .stat-accent-violet .stat-icon {
     color: var(--accent-hover);
-    background: rgba(124, 92, 252, 0.12);
-    box-shadow: inset 0 0 0 1px rgba(124, 92, 252, 0.22);
+    background: rgba(var(--fx-violet-rgb), 0.12);
+    box-shadow: inset 0 0 0 1px rgba(var(--fx-violet-rgb), 0.22);
 }
 
 .stat-accent-purple .stat-icon {
     color: var(--neon-purple);
-    background: rgba(177, 78, 255, 0.11);
-    box-shadow: inset 0 0 0 1px rgba(177, 78, 255, 0.20);
+    background: rgba(var(--fx-purple-rgb), 0.11);
+    box-shadow: inset 0 0 0 1px rgba(var(--fx-purple-rgb), 0.20);
 }
 
 /* A warm crimson accent, so red is not only the colour of errors and
@@ -2372,7 +2452,7 @@ a.brand-aura {
 .btn-link-primary:hover {
     background: linear-gradient(135deg, var(--accent-hover), #818cf8);
     background-size: 200% 200%;
-    box-shadow: 0 4px 25px var(--accent-glow), 0 0 40px rgba(124, 92, 252, 0.2);
+    box-shadow: 0 4px 25px var(--accent-glow), 0 0 40px rgba(var(--fx-violet-rgb), 0.2);
     transform: translateY(-2px);
     letter-spacing: 0.02em;
 }
@@ -2435,16 +2515,16 @@ a.brand-aura {
    from the border and the text, so success and error stay distinct. */
 .toast-region .flash-success {
     background:
-        linear-gradient(135deg, rgba(52, 211, 153, 0.16), rgba(52, 211, 153, 0.07)),
-        linear-gradient(135deg, rgba(16, 22, 38, 0.94), rgba(22, 28, 48, 0.9));
-    border-color: rgba(52, 211, 153, 0.42);
+        linear-gradient(135deg, rgba(var(--fx-success-rgb), 0.16), rgba(var(--fx-success-rgb), 0.07)),
+        linear-gradient(135deg, rgba(var(--fx-toast-1-rgb), 0.94), rgba(var(--fx-toast-2-rgb), 0.9));
+    border-color: rgba(var(--fx-success-rgb), 0.42);
 }
 
 .toast-region .flash-error {
     background:
-        linear-gradient(135deg, rgba(248, 113, 113, 0.16), rgba(248, 113, 113, 0.07)),
-        linear-gradient(135deg, rgba(22, 16, 26, 0.94), rgba(30, 20, 34, 0.9));
-    border-color: rgba(248, 113, 113, 0.42);
+        linear-gradient(135deg, rgba(var(--fx-error-rgb), 0.16), rgba(var(--fx-error-rgb), 0.07)),
+        linear-gradient(135deg, rgba(var(--fx-toast-err-1-rgb), 0.94), rgba(var(--fx-toast-err-2-rgb), 0.9));
+    border-color: rgba(var(--fx-error-rgb), 0.42);
 }
 
 .toast-region .btn-icon {
@@ -2458,7 +2538,7 @@ a.brand-aura {
 
 .toast-region .btn-icon:hover {
     opacity: 1;
-    border-color: rgba(255, 255, 255, 0.18);
+    border-color: rgba(var(--fx-neutral-rgb), 0.18);
 }
 
 
@@ -2986,7 +3066,7 @@ html {
     --arc: 82deg;
     --c-a: rgba(220, 20, 60, 0.70);
     --c-b: rgba(255, 47, 109, 0.82);
-    --c-c: rgba(177, 78, 255, 0.30);
+    --c-c: rgba(var(--fx-purple-rgb), 0.30);
     --glow-a: rgba(232, 34, 84, 0.30);
     --glow-b: rgba(255, 50, 118, 0.50);
     --op: 0.80;
@@ -3117,27 +3197,27 @@ html {
    fit the four already defined above ===== */
 .stat-accent-success .stat-icon {
     color: var(--success);
-    background: rgba(52, 211, 153, 0.12);
-    box-shadow: inset 0 0 0 1px rgba(52, 211, 153, 0.22);
+    background: rgba(var(--fx-success-rgb), 0.12);
+    box-shadow: inset 0 0 0 1px rgba(var(--fx-success-rgb), 0.22);
 }
-.stat-accent-success { border-color: rgba(52, 211, 153, 0.14); }
-.stat-accent-success:hover { border-color: rgba(52, 211, 153, 0.32); }
+.stat-accent-success { border-color: rgba(var(--fx-success-rgb), 0.14); }
+.stat-accent-success:hover { border-color: rgba(var(--fx-success-rgb), 0.32); }
 
 .stat-accent-error .stat-icon {
     color: var(--error);
-    background: rgba(248, 113, 113, 0.12);
-    box-shadow: inset 0 0 0 1px rgba(248, 113, 113, 0.22);
+    background: rgba(var(--fx-error-rgb), 0.12);
+    box-shadow: inset 0 0 0 1px rgba(var(--fx-error-rgb), 0.22);
 }
-.stat-accent-error { border-color: rgba(248, 113, 113, 0.14); }
-.stat-accent-error:hover { border-color: rgba(248, 113, 113, 0.32); }
+.stat-accent-error { border-color: rgba(var(--fx-error-rgb), 0.14); }
+.stat-accent-error:hover { border-color: rgba(var(--fx-error-rgb), 0.32); }
 
 .stat-accent-pink .stat-icon {
     color: var(--neon-pink);
-    background: rgba(255, 0, 170, 0.10);
-    box-shadow: inset 0 0 0 1px rgba(255, 0, 170, 0.20);
+    background: rgba(var(--fx-pink-rgb), 0.10);
+    box-shadow: inset 0 0 0 1px rgba(var(--fx-pink-rgb), 0.20);
 }
-.stat-accent-pink { border-color: rgba(255, 0, 170, 0.14); }
-.stat-accent-pink:hover { border-color: rgba(255, 0, 170, 0.32); }
+.stat-accent-pink { border-color: rgba(var(--fx-pink-rgb), 0.14); }
+.stat-accent-pink:hover { border-color: rgba(var(--fx-pink-rgb), 0.32); }
 
 
 /* ===== Property grid - Property Management ===== */
@@ -3166,7 +3246,7 @@ html {
     height: 150px;
     border-radius: var(--radius-sm);
     overflow: hidden;
-    background: rgba(255, 255, 255, 0.03);
+    background: rgba(var(--fx-neutral-rgb), 0.03);
     border: 1px solid var(--border);
 }
 
@@ -3245,20 +3325,20 @@ html {
 
 .badge-listing-sale {
     color: var(--neon-cyan);
-    background: rgba(0, 245, 255, 0.12);
-    box-shadow: inset 0 0 0 1px rgba(0, 245, 255, 0.24);
+    background: rgba(var(--fx-cyan-rgb), 0.12);
+    box-shadow: inset 0 0 0 1px rgba(var(--fx-cyan-rgb), 0.24);
 }
 
 .badge-listing-rent {
     color: var(--accent-hover);
-    background: rgba(124, 92, 252, 0.14);
-    box-shadow: inset 0 0 0 1px rgba(124, 92, 252, 0.26);
+    background: rgba(var(--fx-violet-rgb), 0.14);
+    box-shadow: inset 0 0 0 1px rgba(var(--fx-violet-rgb), 0.26);
 }
 
 .badge-status-available {
     color: var(--success);
     background: var(--success-bg);
-    box-shadow: inset 0 0 0 1px rgba(52, 211, 153, 0.24);
+    box-shadow: inset 0 0 0 1px rgba(var(--fx-success-rgb), 0.24);
 }
 
 .badge-status-reserved {
@@ -3270,13 +3350,13 @@ html {
 .badge-status-sold {
     color: var(--error);
     background: var(--error-bg);
-    box-shadow: inset 0 0 0 1px rgba(248, 113, 113, 0.24);
+    box-shadow: inset 0 0 0 1px rgba(var(--fx-error-rgb), 0.24);
 }
 
 .badge-status-rented {
     color: var(--neon-purple);
-    background: rgba(177, 78, 255, 0.12);
-    box-shadow: inset 0 0 0 1px rgba(177, 78, 255, 0.24);
+    background: rgba(var(--fx-purple-rgb), 0.12);
+    box-shadow: inset 0 0 0 1px rgba(var(--fx-purple-rgb), 0.24);
 }
 
 /* ===== Inquiry status badges (Phase 6) =====
@@ -3284,8 +3364,8 @@ html {
    off the inquiries.status ENUM values (New / Contacted / Closed). */
 .badge-status-new {
     color: var(--neon-cyan);
-    background: rgba(0, 245, 255, 0.12);
-    box-shadow: inset 0 0 0 1px rgba(0, 245, 255, 0.24);
+    background: rgba(var(--fx-cyan-rgb), 0.12);
+    box-shadow: inset 0 0 0 1px rgba(var(--fx-cyan-rgb), 0.24);
 }
 
 .badge-status-contacted {
@@ -3297,7 +3377,7 @@ html {
 .badge-status-closed {
     color: var(--success);
     background: var(--success-bg);
-    box-shadow: inset 0 0 0 1px rgba(52, 211, 153, 0.24);
+    box-shadow: inset 0 0 0 1px rgba(var(--fx-success-rgb), 0.24);
 }
 
 /* Clamp a long inquiry message to a few lines on the Inquiries list card,
@@ -3320,7 +3400,7 @@ html {
 .filter-bar select,
 .filter-bar input[type="number"],
 .filter-bar input[type="search"] {
-    background: rgba(10, 10, 20, 0.6);
+    background: rgba(var(--fx-panel-rgb), 0.6);
     border: 1px solid var(--border);
     border-radius: var(--radius-sm);
     color: var(--text);
@@ -3442,7 +3522,7 @@ html {
     align-items: center;
     justify-content: center;
     aspect-ratio: 16 / 9;
-    background: rgba(10, 10, 20, 0.5);
+    background: rgba(var(--fx-panel-rgb), 0.5);
     border: 1px solid var(--border);
     border-radius: var(--radius-sm);
     overflow: hidden;
@@ -3459,7 +3539,7 @@ html {
     position: absolute;
     top: 50%;
     transform: translateY(-50%);
-    background: rgba(10, 10, 20, 0.65);
+    background: rgba(var(--fx-panel-rgb), 0.65);
     z-index: 1;
 }
 
@@ -3494,7 +3574,7 @@ html {
 
 .gallery-thumb:hover {
     transform: translateY(-2px);
-    border-color: rgba(124, 92, 252, 0.4);
+    border-color: rgba(var(--fx-violet-rgb), 0.4);
 }
 
 .gallery-thumb.active {
@@ -3544,7 +3624,7 @@ html {
     flex: 1 1 auto;
     min-width: 0;
     padding: 12px 16px;
-    background: rgba(10, 10, 20, 0.6);
+    background: rgba(var(--fx-panel-rgb), 0.6);
     border: 1px solid var(--border);
     border-radius: var(--radius-sm);
     color: var(--text);
@@ -3573,7 +3653,7 @@ html {
 .form-group select {
     width: 100%;
     padding: 12px 16px;
-    background: rgba(10, 10, 20, 0.6);
+    background: rgba(var(--fx-panel-rgb), 0.6);
     border: 1px solid var(--border);
     border-radius: var(--radius-sm);
     color: var(--text);
@@ -3585,8 +3665,8 @@ html {
 
 .form-group select:focus {
     border-color: var(--accent);
-    box-shadow: 0 0 0 3px var(--accent-glow), 0 0 20px rgba(124, 92, 252, 0.15);
-    background: rgba(15, 15, 26, 0.8);
+    box-shadow: 0 0 0 3px var(--accent-glow), 0 0 20px rgba(var(--fx-violet-rgb), 0.15);
+    background: rgba(var(--fx-panel-focus-rgb), 0.8);
 }
 
 /* Two fields sharing one row on a desktop (e.g. bedrooms/bathrooms). */
@@ -3663,7 +3743,7 @@ html {
     position: absolute;
     inset: 20px;
     border-radius: 50%;
-    background: rgba(10, 10, 20, 0.85);
+    background: rgba(var(--fx-panel-rgb), 0.85);
     display: flex;
     flex-direction: column;
     align-items: center;
@@ -3776,7 +3856,7 @@ html {
     position: relative;
     height: 9px;
     border-radius: 100px;
-    background: rgba(255, 255, 255, 0.06);
+    background: rgba(var(--fx-neutral-rgb), 0.06);
     overflow: hidden;
 }
 
@@ -3801,7 +3881,7 @@ html {
     height: 14px;
     border-radius: 100px;
     overflow: hidden;
-    background: rgba(255, 255, 255, 0.06);
+    background: rgba(var(--fx-neutral-rgb), 0.06);
 }
 
 .chart-split-segment {
@@ -3856,7 +3936,7 @@ html {
 }
 
 .analytics-table tbody tr:hover {
-    background: rgba(255, 255, 255, 0.03);
+    background: rgba(var(--fx-neutral-rgb), 0.03);
 }
 
 .analytics-table a {
@@ -3879,4 +3959,165 @@ html {
     .chart-donut-center {
         inset: 16px;
     }
+}
+
+
+/* ================================================================
+   LIGHT MODE - a second, fully-animated cosmic theme
+   ----------------------------------------------------------------
+   Dark mode above is untouched: every rule up to this point still
+   computes to the exact values it always has, because the --fx-*
+   tokenization earlier in this file only moved literals into
+   variables - it never changed one. This block is pure addition: it
+   redefines those same tokens under [data-theme="light"], which
+   script.js sets on <html> (default "dark", persisted in
+   localStorage). Every gradient, glow, particle and orb reads its
+   color from a variable, so this one block is enough to re-theme the
+   entire atmosphere, the glass, and every hover effect - no
+   duplicate rule, no second engine.
+
+   The palette is deliberately not a dimmed copy of the neon hues:
+   #00f5ff reads as vivid against near-black but washes out against
+   near-white, so light mode uses deeper, more saturated counterparts
+   (violet #6d4ae0, cyan #0891b2, crimson #d6187f, purple #8b3ddb) -
+   the same cosmic family, tuned to stay vivid on a bright surface.
+   ================================================================ */
+
+:root[data-theme="light"] {
+    color-scheme: light;
+
+    --bg: #f7f8fc;
+    --surface: #ffffff;
+    --surface-hover: #eef1fa;
+    --border: rgba(23, 28, 58, 0.12);
+    --text: #12162b;
+    --text-muted: #565d80;
+
+    --accent: #6d4ae0;
+    --accent-hover: #5a37cc;
+    --success: #0e9f6e;
+    --error: #dc2626;
+    --neon-cyan: #0891b2;
+    --neon-pink: #d6187f;
+    --neon-purple: #8b3ddb;
+
+    /* Vivid tier: noticeably deeper + more saturated than the dark
+       aurora/orb alphas, so the atmosphere reads as alive rather than
+       a faint tint on a bright page. */
+    --aurora-1: rgba(109, 74, 224, 0.24);
+    --aurora-2: rgba(8, 145, 178, 0.22);
+    --aurora-3: rgba(225, 29, 72, 0.16);
+
+    /* --- raw triples: every rgba(var(--fx-x-rgb), alpha) rule built
+       on these throughout the file above re-themes automatically --- */
+    --fx-violet-rgb: 109, 74, 224;
+    --fx-cyan-rgb: 8, 145, 178;
+    --fx-pink-rgb: 214, 24, 127;
+    --fx-purple-rgb: 139, 61, 219;
+    --fx-success-rgb: 14, 159, 110;
+    --fx-error-rgb: 220, 38, 38;
+    /* Subtle neutral marks (borders, chart tracks, hover flecks, the
+       card shimmer) flip from a light fleck on dark glass to a dark
+       fleck on light glass - same rules, same alphas, opposite end. */
+    --fx-neutral-rgb: 23, 28, 58;
+
+    /* Card/nav glass: white leaning faintly lavender on the second
+       stop, instead of near-black leaning violet. */
+    --fx-glass-1-rgb: 255, 255, 255;
+    --fx-glass-2-rgb: 246, 248, 255;
+    /* Inputs sit as a soft lavender-grey well against the whiter
+       card, then brighten to full white on focus - the same
+       "focus is lighter than rest" relationship dark mode uses,
+       just re-based off white instead of off black. */
+    --fx-panel-rgb: 237, 240, 250;
+    --fx-panel-hover-rgb: 237, 240, 250;
+    --fx-panel-focus-rgb: 255, 255, 255;
+    /* A modal backdrop is conventionally dark in both themes - it is
+       there to dim the page behind a dialog, not to match it. */
+    --fx-backdrop-rgb: 23, 28, 58;
+    --fx-toast-1-rgb: 255, 255, 255;
+    --fx-toast-2-rgb: 248, 250, 255;
+    --fx-toast-err-1-rgb: 255, 255, 255;
+    --fx-toast-err-2-rgb: 255, 250, 250;
+
+    /* Orbs carry their own alpha (not just hue), so they get whole
+       colors rather than a triple - vivid tier, same as the aurora. */
+    --fx-orb-1: rgba(109, 74, 224, 0.18);
+    --fx-orb-2: rgba(8, 145, 178, 0.16);
+    --fx-orb-3: rgba(214, 24, 127, 0.13);
+    --fx-orb-4: rgba(139, 61, 219, 0.17);
+
+    /* #fff sparkles are invisible on a light card. */
+    --fx-sparkle: #6d4ae0;
+}
+
+/* A soft, short cross-fade on the two properties every theme switch
+   actually touches at the page level, so flipping the toggle reads as
+   a transition rather than a jump cut. Component-level color changes
+   (cards, buttons, inputs, nav) already carry their own transitions
+   throughout this file and pick the new theme up through those.
+   prefers-reduced-motion's kill-switch further up already forces every
+   transition-duration on the page to ~0, this one included. */
+body {
+    transition: background-color 0.35s ease, color 0.35s ease;
+}
+
+/* ===== Background wash + star field =====
+   body::before (the aurora) already reads entirely from --aurora-1/2/3
+   above and needs no rule of its own. The wash tints and the star
+   field are hand-tuned multi-stop gradients that don't reduce to a
+   single token, so they get a full override here instead. */
+[data-theme="light"] body {
+    background-image:
+        radial-gradient(ellipse 600px 400px at 50% 0%, rgba(109, 74, 224, 0.10), transparent),
+        radial-gradient(ellipse 400px 300px at 80% 100%, rgba(8, 145, 178, 0.08), transparent);
+}
+
+[data-theme="light"] body::after {
+    background-image:
+        radial-gradient(1.5px 1.5px at 10% 20%, rgba(109, 74, 224, 0.55), transparent),
+        radial-gradient(1px 1px at 30% 70%, rgba(8, 145, 178, 0.50), transparent),
+        radial-gradient(2px 2px at 50% 10%, rgba(225, 29, 72, 0.42), transparent),
+        radial-gradient(1px 1px at 70% 50%, rgba(109, 74, 224, 0.50), transparent),
+        radial-gradient(1.5px 1.5px at 90% 80%, rgba(8, 145, 178, 0.55), transparent),
+        radial-gradient(1px 1px at 15% 90%, rgba(225, 29, 72, 0.42), transparent),
+        radial-gradient(2px 2px at 85% 15%, rgba(109, 74, 224, 0.42), transparent),
+        radial-gradient(1px 1px at 45% 45%, rgba(8, 145, 178, 0.42), transparent),
+        radial-gradient(1.5px 1.5px at 60% 85%, rgba(225, 29, 72, 0.50), transparent),
+        radial-gradient(1px 1px at 25% 35%, rgba(109, 74, 224, 0.55), transparent);
+    opacity: 0.7;
+}
+
+/* ===== Heading shimmer =====
+   The dark gradient runs white -> lavender -> cyan -> white, which
+   is exactly backwards on a light page - it needs to be dark text
+   shimmering through the accent colors, not light text. */
+[data-theme="light"] h1 {
+    background-image: linear-gradient(90deg, #12162b, #6d4ae0, #0891b2, #12162b, #6d4ae0);
+}
+
+/* ===== Selection =====
+   The background already re-themes via --fx-violet-rgb above; only
+   the white foreground text needs to flip to stay legible. */
+[data-theme="light"] ::selection {
+    color: #12162b;
+}
+
+/* ===== A few colors chosen as pale tints specifically for
+   legibility on near-black, which is precisely wrong on near-white ===== */
+[data-theme="light"] .user-item:hover .user-name {
+    color: var(--accent-hover);
+}
+
+[data-theme="light"] .btn-icon.btn-edit {
+    color: var(--accent);
+}
+
+[data-theme="light"] .btn-icon.btn-delete {
+    color: var(--error);
+}
+
+[data-theme="light"] .badge-status-reserved,
+[data-theme="light"] .badge-status-contacted {
+    color: #b45309;
 }

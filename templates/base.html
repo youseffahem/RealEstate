@@ -11,6 +11,22 @@
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <script>
+        /* Runs before first paint, so a visitor who chose Light on a
+           previous visit never sees a flash of the dark default. Dark
+           needs no attribute (style.css's :root already is dark), so
+           this only ever has to act when localStorage says "light".
+           Kept inline and tiny on purpose - script.js runs at the end
+           of <body> and would already be too late to prevent the
+           flash. */
+        (function () {
+            try {
+                if (localStorage.getItem('realestate-theme') === 'light') {
+                    document.documentElement.setAttribute('data-theme', 'light');
+                }
+            } catch (e) { /* private mode / storage disabled: stay dark */ }
+        }());
+    </script>
 </head>
 <body>
 
@@ -62,6 +78,17 @@
                 <a href="{{ url_for('inquiries_list') }}"
                    class="nav-link {% if request.endpoint in ('inquiries_list', 'inquiry_detail', 'inquiries_add', 'inquiries_edit') %}active{% endif %}"
                    {% if request.endpoint in ('inquiries_list', 'inquiry_detail', 'inquiries_add', 'inquiries_edit') %}aria-current="page"{% endif %}>Inquiries</a>
+                {# Dark is the default and needs no attribute yet - the
+                   pre-paint script in <head> sets data-theme="light" first
+                   if that's what localStorage remembers, so this always
+                   reflects the theme that's actually about to be on
+                   screen. script.js brings aria-pressed in line with it
+                   on load, then flips both on every click. #}
+                <button type="button" class="btn-icon theme-toggle" data-theme-toggle
+                        aria-pressed="false" aria-label="Switch to light mode">
+                    <span class="theme-toggle-icon theme-toggle-moon">{{ ico.icon('moon', 16) }}</span>
+                    <span class="theme-toggle-icon theme-toggle-sun">{{ ico.icon('sun', 16) }}</span>
+                </button>
             </span>
         </nav>
 

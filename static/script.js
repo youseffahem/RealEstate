@@ -37,6 +37,12 @@
     var pointerFx = finePointer && !reduceMotion; // anything driven by the mouse
 
     document.addEventListener('DOMContentLoaded', function () {
+        /* Reads the active theme's colors into PALETTE before anything
+           that paints with it (the particle canvas) ever runs, so the
+           very first frame is already correct - no dark-then-recolor
+           flash on a light-mode page load. */
+        readFxPalette();
+
         /* ---- Part A: atmosphere ---- */
         if (ambientFx) {
             initParticleCanvas();
@@ -60,6 +66,7 @@
             initElementMouseEnterFx();
         }
         /* ---- Part A: safe on every device ---- */
+        initThemeToggle();
         initRippleEffect();
         initElectricInputs();
         initSmoothFormLabels();
@@ -183,6 +190,74 @@
         'rgba(177, 78, 255, '    // --neon-purple
     ];
 
+    /* The canvas can't take a CSS var() the way every other effect in this
+       file does - fillStyle/strokeStyle need a real color string. This
+       reads the same --fx-*-rgb triples style.css themes off of and
+       rebuilds PALETTE's four entries in place (same array, same order,
+       so every particle's stored `ci` index still points at the right
+       hue). Called once at startup and again on every theme switch;
+       draw() runs every frame regardless, so the next frame after a
+       switch simply paints with the new strings - no rebuild, no second
+       read path. */
+    function readFxPalette() {
+        var cs = getComputedStyle(document.documentElement);
+        function triple(name, fallback) {
+            var v = cs.getPropertyValue(name);
+            return (v && v.trim()) || fallback;
+        }
+        PALETTE[0] = 'rgba(' + triple('--fx-violet-rgb', '124, 92, 252') + ', ';
+        PALETTE[1] = 'rgba(' + triple('--fx-cyan-rgb', '0, 245, 255') + ', ';
+        PALETTE[2] = 'rgba(' + triple('--fx-pink-rgb', '255, 0, 170') + ', ';
+        PALETTE[3] = 'rgba(' + triple('--fx-purple-rgb', '177, 78, 255') + ', ';
+    }
+
+    /* ===============================================================
+       THEME TOGGLE - dark (default) / light, persisted, instant
+       Every color in this file and in style.css already reads from the
+       --fx-, --accent, --neon- (etc.) custom properties that
+       [data-theme="light"] overrides, so flipping the attribute on
+       <html> *is* the entire re-theme - cards, glass, aurora, particles,
+       orbs, cursor glow, trail, sparkles, sonar, the brand. Nothing here
+       touches a DOM node's color directly; it only sets the attribute,
+       remembers the choice, and tells the canvas to repaint (§ above)
+       since that one piece can't react to a CSS var on its own.
+
+       The <head> of base.html carries a small pre-paint script that
+       reads localStorage and sets data-theme before first paint, so a
+       returning visitor who chose light never sees a dark flash; this
+       only has to bring the button's ARIA state and PALETTE in line
+       with whatever that script already applied. */
+    var THEME_KEY = 'realestate-theme';
+
+    function initThemeToggle() {
+        var button = document.querySelector('[data-theme-toggle]');
+        if (!button) {
+            return;
+        }
+
+        function apply(theme) {
+            document.documentElement.setAttribute('data-theme', theme);
+            button.setAttribute('aria-pressed', theme === 'light' ? 'true' : 'false');
+            button.setAttribute('aria-label',
+                theme === 'light' ? 'Switch to dark mode' : 'Switch to light mode');
+            readFxPalette();
+        }
+
+        button.addEventListener('click', function () {
+            var current = document.documentElement.getAttribute('data-theme');
+            var next = current === 'light' ? 'dark' : 'light';
+            try {
+                window.localStorage.setItem(THEME_KEY, next);
+            } catch (e) {
+                // Private browsing / storage disabled: the switch still
+                // works for this page view, it just won't be remembered.
+            }
+            apply(next);
+        });
+
+        apply(document.documentElement.getAttribute('data-theme') || 'dark');
+    }
+
 
     /* ===============================================================
        1. PARTICLE CANVAS - stars + constellation
@@ -224,7 +299,11 @@
                     vy: (Math.random() - 0.5) * 0.28,
                     r: 0.6 + Math.random() * 1.4,
                     a: 0.25 + Math.random() * 0.45,
-                    c: PALETTE[i % PALETTE.length]
+                    // an index into PALETTE, not a copy of the string - so
+                    // a theme switch (which mutates PALETTE's contents in
+                    // place, see readFxPalette) repaints every existing
+                    // particle on its very next frame, with no rebuild
+                    ci: i % PALETTE.length
                 });
             }
         }
@@ -271,7 +350,7 @@
 
                 ctx.beginPath();
                 ctx.arc(p.x, p.y, p.r, 0, Math.PI * 2);
-                ctx.fillStyle = p.c + p.a + ')';
+                ctx.fillStyle = PALETTE[p.ci] + p.a + ')';
                 ctx.fill();
             }
 
@@ -291,7 +370,9 @@
                         ctx.beginPath();
                         ctx.moveTo(p.x, p.y);
                         ctx.lineTo(q.x, q.y);
-                        ctx.strokeStyle = 'rgba(124, 92, 252, ' +
+                        // PALETTE[0] is the violet entry - same hue the
+                        // constellation lines always used, now theme-aware
+                        ctx.strokeStyle = PALETTE[0] +
                             (0.14 * (1 - dist / LINK)).toFixed(3) + ')';
                         ctx.stroke();
                     }
@@ -306,7 +387,9 @@
                         ctx.beginPath();
                         ctx.moveTo(p.x, p.y);
                         ctx.lineTo(pointer.x, pointer.y);
-                        ctx.strokeStyle = 'rgba(0, 245, 255, ' +
+                        // PALETTE[1] is the cyan entry - same hue the
+                        // cursor tether always used, now theme-aware
+                        ctx.strokeStyle = PALETTE[1] +
                             (0.20 * (1 - dist / REACH)).toFixed(3) + ')';
                         ctx.stroke();
                     }
@@ -347,11 +430,14 @@
     var orbAnimations = [];
 
     function initFloatingOrbs() {
+        // Whole colors, not triples - a var() reference baked into an
+        // inline style re-resolves on its own the instant data-theme
+        // changes, so orbs need no theme-change handling at all.
         var orbColors = [
-            'rgba(124, 92, 252, 0.08)',
-            'rgba(0, 245, 255, 0.06)',
-            'rgba(255, 0, 170, 0.05)',
-            'rgba(177, 78, 255, 0.06)'
+            'var(--fx-orb-1)',
+            'var(--fx-orb-2)',
+            'var(--fx-orb-3)',
+            'var(--fx-orb-4)'
         ];
 
         var host = document.createElement('div');
@@ -440,7 +526,7 @@
         glow.style.cssText =
             'position:fixed;top:0;left:0;width:260px;height:260px;margin:-130px 0 0 -130px;' +
             'border-radius:50%;pointer-events:none;z-index:0;opacity:0;' +
-            'background:radial-gradient(circle, rgba(124,92,252,0.16), rgba(0,245,255,0.06) 45%, transparent 70%);' +
+            'background:radial-gradient(circle, rgba(var(--fx-violet-rgb),0.16), rgba(var(--fx-cyan-rgb),0.06) 45%, transparent 70%);' +
             'filter:blur(14px);transition:opacity 0.4s ease;will-change:transform;';
         layer().appendChild(glow);
 
@@ -448,7 +534,7 @@
         dot.style.cssText =
             'position:fixed;top:0;left:0;width:6px;height:6px;margin:-3px 0 0 -3px;' +
             'border-radius:50%;pointer-events:none;z-index:0;opacity:0;' +
-            'background:rgba(0,245,255,0.85);box-shadow:0 0 10px rgba(0,245,255,0.8);' +
+            'background:rgba(var(--fx-cyan-rgb),0.85);box-shadow:0 0 10px rgba(var(--fx-cyan-rgb),0.8);' +
             'transition:opacity 0.3s ease;will-change:transform;';
         layer().appendChild(dot);
 
@@ -499,9 +585,9 @@
                 'width:' + size + 'px;height:' + size + 'px;' +
                 'margin:' + (-size / 2) + 'px 0 0 ' + (-size / 2) + 'px;' +
                 'border-radius:' + (i % 4 === 0 ? '2px' : '50%') + ';' +
-                'background:' + (cyan ? 'rgba(0,245,255,0.75)'
-                              : pink ? 'rgba(255,0,170,0.65)'
-                                     : 'rgba(124,92,252,0.75)') + ';' +
+                'background:' + (cyan ? 'rgba(var(--fx-cyan-rgb),0.75)'
+                              : pink ? 'rgba(var(--fx-pink-rgb),0.65)'
+                                     : 'rgba(var(--fx-violet-rgb),0.75)') + ';' +
                 'box-shadow:0 0 8px currentColor;will-change:transform,opacity;';
             layer().appendChild(node);
             nodes.push(node);
@@ -788,7 +874,7 @@
             ripple.setAttribute('aria-hidden', 'true');
             ripple.style.cssText =
                 'position:absolute;border-radius:50%;pointer-events:none;' +
-                'background:rgba(255,255,255,0.28);' +
+                'background:rgba(var(--fx-neutral-rgb),0.28);' +
                 'width:' + size + 'px;height:' + size + 'px;' +
                 'left:' + (event.clientX - box.left - size / 2) + 'px;' +
                 'top:' + (event.clientY - box.top - size / 2) + 'px;';
@@ -1098,7 +1184,7 @@
                 var box = link.getBoundingClientRect();
                 var px = ((event.clientX - box.left) / box.width * 100).toFixed(1);
                 link.style.backgroundImage =
-                    'radial-gradient(circle at ' + px + '% 50%, rgba(0,245,255,0.14), transparent 60%)';
+                    'radial-gradient(circle at ' + px + '% 50%, rgba(var(--fx-cyan-rgb),0.14), transparent 60%)';
             });
             link.addEventListener('mouseleave', function () {
                 link.style.backgroundImage = '';
@@ -1121,7 +1207,7 @@
             var px = ((event.clientX - box.left) / box.width * 100).toFixed(1);
             var py = ((event.clientY - box.top) / box.height * 100).toFixed(1);
             msg.style.backgroundImage =
-                'radial-gradient(circle at ' + px + '% ' + py + '%, rgba(124,92,252,0.10), transparent 55%)';
+                'radial-gradient(circle at ' + px + '% ' + py + '%, rgba(var(--fx-violet-rgb),0.10), transparent 55%)';
         }, { passive: true });
 
         document.addEventListener('mouseout', function (event) {
@@ -1148,7 +1234,7 @@
                 var flash = document.createElement('span');
                 flash.setAttribute('aria-hidden', 'true');
                 flash.style.cssText =
-                    'position:absolute;inset:0;background:rgba(124,92,252,0.06);' +
+                    'position:absolute;inset:0;background:rgba(var(--fx-violet-rgb),0.06);' +
                     'pointer-events:none;z-index:1;opacity:0.5;' +
                     'transition:opacity 0.4s ease-out;';
                 card.appendChild(flash);
