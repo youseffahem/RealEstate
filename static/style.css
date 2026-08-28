@@ -3569,3 +3569,282 @@ html {
         grid-template-columns: 1fr;
     }
 }
+
+
+/* ================================================================
+   DASHBOARD 2.0 ANALYTICS (Phase 7)
+   ----------------------------------------------------------------
+   Appended block. Every chart here is plain HTML/CSS (a CSS
+   conic-gradient donut, and flexbox bar/split-bar meters) - no chart
+   library, no canvas, no SVG, no new JavaScript. Every chart card is a
+   plain .card, so it already gets the tilt/proximity-glow/sparkle/
+   border-rotate effects from script.js for free, the same note
+   properties/index.html's own appended block already makes.
+
+   Grids use auto-fit/minmax instead of a breakpoint-per-size media
+   query, so they fall back to a single column on their own once the
+   viewport can no longer fit the minimum column width - verified down
+   to 390px, where the .card's own padding leaves roughly 300px of
+   inner width. The one exception is the agent performance table, which
+   cannot reflow into a column - it scrolls inside its own
+   .table-scroll instead of ever widening the page.
+   ================================================================ */
+
+.dashboard-section-heading {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin: 28px 0 16px;
+}
+
+.analytics-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+    gap: 20px;
+    margin-bottom: 20px;
+}
+
+.chart-card {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+}
+
+/* ===== Donut chart - CSS conic-gradient, no image, no canvas ===== */
+.chart-donut-wrap {
+    display: flex;
+    align-items: center;
+    gap: 20px;
+    flex-wrap: wrap;
+}
+
+.chart-donut {
+    position: relative;
+    width: 140px;
+    height: 140px;
+    border-radius: 50%;
+    flex-shrink: 0;
+    box-shadow: inset 0 0 0 1px var(--border);
+}
+
+.chart-donut-center {
+    position: absolute;
+    inset: 20px;
+    border-radius: 50%;
+    background: rgba(10, 10, 20, 0.85);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+}
+
+.chart-donut-total {
+    font-size: 1.35rem;
+    font-weight: 800;
+    line-height: 1.1;
+    color: var(--text);
+    font-variant-numeric: tabular-nums;
+}
+
+.chart-donut-total-label {
+    font-size: 0.62rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    color: var(--text-muted);
+}
+
+/* ===== Shared legend - used by the donut and both split bars ===== */
+.chart-legend {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    flex: 1 1 150px;
+    min-width: 0;
+    list-style: none;
+}
+
+/* Inquiry Analytics keeps its legend on one line on a wide screen -
+   the donut has no room constraint next to it, but a standalone legend
+   under a full-width split bar reads better spread out. */
+.chart-legend-row {
+    flex-direction: row;
+    flex-wrap: wrap;
+    gap: 8px 20px;
+}
+
+.chart-legend-item {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 0.82rem;
+    color: var(--text);
+    min-width: 0;
+}
+
+.chart-legend-swatch {
+    width: 10px;
+    height: 10px;
+    border-radius: 3px;
+    flex-shrink: 0;
+}
+
+.chart-legend-value {
+    margin-left: auto;
+    font-weight: 700;
+    font-variant-numeric: tabular-nums;
+}
+
+.chart-legend-row .chart-legend-value {
+    margin-left: 0;
+}
+
+.chart-legend-pct {
+    color: var(--text-muted);
+    font-size: 0.72rem;
+    font-variant-numeric: tabular-nums;
+}
+
+/* ===== Horizontal bar list - Properties by Type / Top Locations ===== */
+.chart-bars {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    list-style: none;
+}
+
+.chart-bar-row {
+    display: flex;
+    flex-direction: column;
+    gap: 5px;
+}
+
+.chart-bar-top {
+    display: flex;
+    justify-content: space-between;
+    gap: 8px;
+    font-size: 0.8rem;
+    color: var(--text);
+}
+
+.chart-bar-top > span:first-child {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.chart-bar-count {
+    font-weight: 700;
+    font-variant-numeric: tabular-nums;
+    flex-shrink: 0;
+}
+
+.chart-bar-track {
+    position: relative;
+    height: 9px;
+    border-radius: 100px;
+    background: rgba(255, 255, 255, 0.06);
+    overflow: hidden;
+}
+
+.chart-bar-fill {
+    position: absolute;
+    inset: 0;
+    width: 0;
+    border-radius: 100px;
+}
+
+.chart-bar-fill-violet {
+    background: linear-gradient(90deg, var(--accent), var(--accent-hover));
+}
+
+.chart-bar-fill-cyan {
+    background: linear-gradient(90deg, #0891a8, var(--neon-cyan));
+}
+
+/* ===== Split bar - Properties by Listing Type / Inquiries by Status ===== */
+.chart-split {
+    display: flex;
+    height: 14px;
+    border-radius: 100px;
+    overflow: hidden;
+    background: rgba(255, 255, 255, 0.06);
+}
+
+.chart-split-segment {
+    height: 100%;
+}
+
+/* ===== Recent activity - two panels side by side, one column on mobile ===== */
+.dashboard-grid-2 {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+    gap: 20px;
+}
+
+/* ===== Agent performance table - scrolls in its own box, never the page ===== */
+.table-scroll {
+    width: 100%;
+    overflow-x: auto;
+}
+
+.analytics-table {
+    width: 100%;
+    min-width: 540px;
+    border-collapse: collapse;
+    font-size: 0.85rem;
+}
+
+.analytics-table th,
+.analytics-table td {
+    padding: 10px 14px;
+    text-align: left;
+    border-bottom: 1px solid var(--border);
+    white-space: nowrap;
+}
+
+.analytics-table th {
+    font-size: 0.68rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    color: var(--text-muted);
+}
+
+.analytics-table td {
+    color: var(--text);
+    font-variant-numeric: tabular-nums;
+}
+
+.analytics-table td:first-child,
+.analytics-table th:first-child {
+    white-space: normal;
+    font-variant-numeric: normal;
+}
+
+.analytics-table tbody tr:hover {
+    background: rgba(255, 255, 255, 0.03);
+}
+
+.analytics-table a {
+    color: var(--text);
+    font-weight: 600;
+    text-decoration: none;
+}
+
+.analytics-table a:hover {
+    color: var(--accent-hover);
+    text-decoration: underline;
+}
+
+@media (max-width: 480px) {
+    .chart-donut {
+        width: 120px;
+        height: 120px;
+    }
+
+    .chart-donut-center {
+        inset: 16px;
+    }
+}

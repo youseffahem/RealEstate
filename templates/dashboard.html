@@ -7,17 +7,17 @@
 {% block shell_class %}shell-wide{% endblock %}
 
 {% block heading %}Real Estate Dashboard{% endblock %}
-{% block subtitle %}A live overview of your property portfolio, read straight from MySQL.{% endblock %}
+{% block subtitle %}A live overview of your property portfolio, agents and inquiry pipeline, read straight from MySQL.{% endblock %}
 
 {% block content %}
 
-<!-- ===== Live statistics, read from property_queries.get_property_stats() ===== -->
+<!-- ===== Portfolio overview - property_queries.get_property_stats(), via analytics_queries.get_dashboard_overview() ===== -->
 <section class="user-row stats-row" aria-label="Portfolio overview">
 
     <article class="card user-info col-stat stat-card stat-accent-cyan">
         <h2 class="stat-head">
             <span class="stat-icon">{{ ico.icon('home', 18) }}</span>
-            <span class="stat-value">{{ stats.total }}</span>
+            <span class="stat-value">{{ overview.total }}</span>
         </h2>
         <span class="user-date stat-label">Total properties</span>
     </article>
@@ -25,7 +25,7 @@
     <article class="card user-info col-stat stat-card stat-accent-success">
         <h2 class="stat-head">
             <span class="stat-icon">{{ ico.icon('check', 18) }}</span>
-            <span class="stat-value">{{ stats.available }}</span>
+            <span class="stat-value">{{ overview.available }}</span>
         </h2>
         <span class="user-date stat-label">Available</span>
     </article>
@@ -33,7 +33,7 @@
     <article class="card user-info col-stat stat-card stat-accent-violet">
         <h2 class="stat-head">
             <span class="stat-icon">{{ ico.icon('alert', 18) }}</span>
-            <span class="stat-value">{{ stats.reserved }}</span>
+            <span class="stat-value">{{ overview.reserved }}</span>
         </h2>
         <span class="user-date stat-label">Reserved</span>
     </article>
@@ -41,7 +41,7 @@
     <article class="card user-info col-stat stat-card stat-accent-error">
         <h2 class="stat-head">
             <span class="stat-icon">{{ ico.icon('tag', 18) }}</span>
-            <span class="stat-value">{{ stats.sold }}</span>
+            <span class="stat-value">{{ overview.sold }}</span>
         </h2>
         <span class="user-date stat-label">Sold</span>
     </article>
@@ -49,7 +49,7 @@
     <article class="card user-info col-stat stat-card stat-accent-purple">
         <h2 class="stat-head">
             <span class="stat-icon">{{ ico.icon('key', 18) }}</span>
-            <span class="stat-value">{{ stats.rented }}</span>
+            <span class="stat-value">{{ overview.rented }}</span>
         </h2>
         <span class="user-date stat-label">Rented</span>
     </article>
@@ -57,7 +57,7 @@
     <article class="card user-info col-stat stat-card stat-accent-crimson">
         <h2 class="stat-head">
             <span class="stat-icon">{{ ico.icon('wallet', 18) }}</span>
-            <span class="stat-value">${{ stats.total_value|money }}</span>
+            <span class="stat-value">${{ overview.total_value|money }}</span>
         </h2>
         <span class="user-date stat-label">Total portfolio value</span>
     </article>
@@ -65,9 +65,55 @@
     <article class="card user-info col-stat stat-card stat-accent-pink">
         <h2 class="stat-head">
             <span class="stat-icon">{{ ico.icon('trending', 18) }}</span>
-            <span class="stat-value">${{ stats.average_price|money }}</span>
+            <span class="stat-value">${{ overview.average_price|money }}</span>
         </h2>
         <span class="user-date stat-label">Average property price</span>
+    </article>
+
+</section>
+
+<!-- ===== Team & inquiry pipeline - agent_queries.get_agent_overview_stats() +
+       inquiry_queries.get_inquiry_stats(), via analytics_queries.get_dashboard_overview() ===== -->
+<section class="user-row stats-row" aria-label="Team and inquiry pipeline overview">
+
+    <article class="card user-info col-stat stat-card stat-accent-cyan">
+        <h2 class="stat-head">
+            <span class="stat-icon">{{ ico.icon('user', 18) }}</span>
+            <span class="stat-value">{{ overview.total_agents }}</span>
+        </h2>
+        <span class="user-date stat-label">Total agents</span>
+    </article>
+
+    <article class="card user-info col-stat stat-card stat-accent-violet">
+        <h2 class="stat-head">
+            <span class="stat-icon">{{ ico.icon('mail', 18) }}</span>
+            <span class="stat-value">{{ overview.total_inquiries }}</span>
+        </h2>
+        <span class="user-date stat-label">Total inquiries</span>
+    </article>
+
+    <article class="card user-info col-stat stat-card stat-accent-purple">
+        <h2 class="stat-head">
+            <span class="stat-icon">{{ ico.icon('sparkle', 18) }}</span>
+            <span class="stat-value">{{ overview.new_inquiries }}</span>
+        </h2>
+        <span class="user-date stat-label">New inquiries</span>
+    </article>
+
+    <article class="card user-info col-stat stat-card stat-accent-pink">
+        <h2 class="stat-head">
+            <span class="stat-icon">{{ ico.icon('phone', 18) }}</span>
+            <span class="stat-value">{{ overview.contacted_inquiries }}</span>
+        </h2>
+        <span class="user-date stat-label">Contacted inquiries</span>
+    </article>
+
+    <article class="card user-info col-stat stat-card stat-accent-success">
+        <h2 class="stat-head">
+            <span class="stat-icon">{{ ico.icon('check', 18) }}</span>
+            <span class="stat-value">{{ overview.closed_inquiries }}</span>
+        </h2>
+        <span class="user-date stat-label">Closed inquiries</span>
     </article>
 
 </section>
@@ -91,5 +137,272 @@
         </span>
     </p>
 </section>
+
+<!-- ===== Property analytics - analytics_queries.get_property_type_stats() /
+       get_listing_type_stats() / get_location_stats(), plus the status
+       breakdown already in `overview` ===== -->
+<h2 class="dashboard-section-heading">{{ ico.icon('layers', 20) }} Property Analytics</h2>
+
+<div class="analytics-grid">
+
+    <!-- Chart 1 (Section 7): Properties by Status - donut, CSS conic-gradient only -->
+    <article class="card chart-card">
+        <h2>{{ ico.icon('tag') }} Properties by Status</h2>
+        {% if overview.total %}
+        <div class="chart-donut-wrap">
+            <div class="chart-donut" role="img"
+                 aria-label="Properties by status: {% for row in status_chart %}{{ row.label }} {{ row.count }}{{ ', ' if not loop.last }}{% endfor %}"
+                 style="background: conic-gradient({% for row in status_chart %}{{ row.color }} {{ row.start_percent }}% {{ row.end_percent }}%{{ ', ' if not loop.last }}{% endfor %});">
+                <span class="chart-donut-center" aria-hidden="true">
+                    <span class="chart-donut-total">{{ overview.total }}</span>
+                    <span class="chart-donut-total-label">Total</span>
+                </span>
+            </div>
+            <ul class="chart-legend">
+                {% for row in status_chart %}
+                <li class="chart-legend-item">
+                    <span class="chart-legend-swatch" style="background: {{ row.color }};" aria-hidden="true"></span>
+                    <span>{{ row.label }}</span>
+                    <span class="chart-legend-value">{{ row.count }}</span>
+                    <span class="chart-legend-pct">({{ row.percent }}%)</span>
+                </li>
+                {% endfor %}
+            </ul>
+        </div>
+        {% else %}
+        <p class="submission-message">{{ ico.icon('database', 18) }} No properties yet.</p>
+        {% endif %}
+    </article>
+
+    <!-- Chart 2 (Section 7): Properties by Type - horizontal bar list -->
+    <article class="card chart-card">
+        <h2>{{ ico.icon('home') }} Properties by Type</h2>
+        {% if type_chart %}
+        <ul class="chart-bars">
+            {% for row in type_chart %}
+            <li class="chart-bar-row">
+                <span class="chart-bar-top">
+                    <span>{{ row.label }}</span>
+                    <span class="chart-bar-count">{{ row.count }}</span>
+                </span>
+                <span class="chart-bar-track">
+                    <span class="chart-bar-fill chart-bar-fill-violet" aria-hidden="true" style="width: {{ row.bar_pct }}%;"></span>
+                </span>
+            </li>
+            {% endfor %}
+        </ul>
+        {% else %}
+        <p class="submission-message">{{ ico.icon('database', 18) }} No property types found.</p>
+        {% endif %}
+    </article>
+
+    <!-- Properties by Listing Type - two-segment split bar -->
+    <article class="card chart-card">
+        <h2>{{ ico.icon('key') }} Properties by Listing Type</h2>
+        {% if overview.total %}
+        <div class="chart-split" role="img"
+             aria-label="Properties by listing type: {% for row in listing_chart %}{{ row.label }} {{ row.count }}{{ ', ' if not loop.last }}{% endfor %}">
+            {% for row in listing_chart %}
+            <span class="chart-split-segment" aria-hidden="true" style="width: {{ row.percent }}%; background: {{ row.color }};"></span>
+            {% endfor %}
+        </div>
+        <ul class="chart-legend">
+            {% for row in listing_chart %}
+            <li class="chart-legend-item">
+                <span class="chart-legend-swatch" style="background: {{ row.color }};" aria-hidden="true"></span>
+                <span>{{ row.label }}</span>
+                <span class="chart-legend-value">{{ row.count }}</span>
+                <span class="chart-legend-pct">({{ row.percent }}%)</span>
+            </li>
+            {% endfor %}
+        </ul>
+        {% else %}
+        <p class="submission-message">{{ ico.icon('database', 18) }} No properties yet.</p>
+        {% endif %}
+    </article>
+
+    <!-- Top Locations (Section 3) - horizontal bar list, analytics_queries.get_location_stats() -->
+    <article class="card chart-card">
+        <h2>{{ ico.icon('map-pin') }} Top Locations</h2>
+        {% if location_chart %}
+        <ul class="chart-bars">
+            {% for row in location_chart %}
+            <li class="chart-bar-row">
+                <span class="chart-bar-top">
+                    <span title="{{ row.label }}, {{ row.city }}">{{ row.label }}, {{ row.city }}</span>
+                    <span class="chart-bar-count">{{ row.count }}</span>
+                </span>
+                <span class="chart-bar-track">
+                    <span class="chart-bar-fill chart-bar-fill-cyan" aria-hidden="true" style="width: {{ row.bar_pct }}%;"></span>
+                </span>
+            </li>
+            {% endfor %}
+        </ul>
+        {% else %}
+        <p class="submission-message">{{ ico.icon('database', 18) }} No properties yet.</p>
+        {% endif %}
+    </article>
+
+</div>
+
+<!-- ===== Inquiry analytics - inquiry_queries.get_inquiry_stats() (via `overview`),
+       inquiry closure rate (Section 4) computed in analytics_queries.get_dashboard_overview() ===== -->
+<section class="card" aria-label="Inquiry analytics">
+
+    <h2>{{ ico.icon('mail') }} Inquiry Analytics</h2>
+
+    <span class="user-row row-wrap property-badges">
+        <span class="badge-pill">{{ overview.inquiries_today }} today</span>
+        <span class="badge-pill badge-status-closed">{{ overview.closure_rate }}% inquiry closure rate</span>
+    </span>
+
+    <p class="submission-message">{{ ico.icon('alert', 15) }}
+        Inquiry closure rate = Closed inquiries ÷ Total inquiries. This is an inquiry closure rate, not a sales
+        conversion rate - the database has no link between an inquiry and a completed sale.</p>
+
+    {% if overview.total_inquiries %}
+    <div class="chart-split" role="img"
+         aria-label="Inquiries by status: {% for row in inquiry_status_chart %}{{ row.label }} {{ row.count }}{{ ', ' if not loop.last }}{% endfor %}">
+        {% for row in inquiry_status_chart %}
+        <span class="chart-split-segment" aria-hidden="true" style="width: {{ row.percent }}%; background: {{ row.color }};"></span>
+        {% endfor %}
+    </div>
+    <ul class="chart-legend chart-legend-row">
+        {% for row in inquiry_status_chart %}
+        <li class="chart-legend-item">
+            <span class="chart-legend-swatch" style="background: {{ row.color }};" aria-hidden="true"></span>
+            <span>{{ row.label }}</span>
+            <span class="chart-legend-value">{{ row.count }}</span>
+            <span class="chart-legend-pct">({{ row.percent }}%)</span>
+        </li>
+        {% endfor %}
+    </ul>
+    {% else %}
+    <p class="submission-message">{{ ico.icon('database', 18) }} No inquiries yet.</p>
+    {% endif %}
+
+</section>
+
+<!-- ===== Agent performance - analytics_queries.get_agent_performance() ===== -->
+<section class="card" aria-label="Agent performance">
+
+    <h2>{{ ico.icon('user') }} Agent Performance <span class="badge" data-count>{{ agent_performance|length }}</span></h2>
+
+    {% if agent_performance %}
+    <div class="table-scroll">
+        <table class="analytics-table">
+            <thead>
+                <tr>
+                    <th scope="col">Agent</th>
+                    <th scope="col">Assigned</th>
+                    <th scope="col">Available</th>
+                    <th scope="col">Sold</th>
+                    <th scope="col">Rented</th>
+                    <th scope="col">Inquiries</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for agent in agent_performance %}
+                <tr>
+                    <td><a href="{{ url_for('agent_detail', id=agent.id) }}">{{ agent.name }}</a></td>
+                    <td>{{ agent.assigned }}</td>
+                    <td>{{ agent.available }}</td>
+                    <td>{{ agent.sold }}</td>
+                    <td>{{ agent.rented }}</td>
+                    <td>{{ agent.inquiry_count }}</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+    {% else %}
+    <p class="submission-message">{{ ico.icon('database', 18) }} No agents found.</p>
+    {% endif %}
+
+</section>
+
+<!-- ===== Recent activity - analytics_queries.get_recent_properties() / get_recent_inquiries() ===== -->
+<div class="dashboard-grid-2">
+
+    <section class="card" aria-label="Recent properties">
+        <h2>{{ ico.icon('home') }} Recent Properties</h2>
+
+        {% if recent_properties %}
+        <div class="property-grid">
+            {% for property in recent_properties %}
+            <article class="card property-card">
+
+                <h2>{{ ico.icon('home', 16) }} <span title="{{ property.title }}">{{ property.title|truncate(36, True, '…') }}</span></h2>
+
+                <span class="user-row row-wrap property-badges">
+                    <span class="badge-pill {{ 'badge-listing-sale' if property.listing_type == 'For Sale' else 'badge-listing-rent' }}">
+                        {{ property.listing_type }}</span>
+                    <span class="badge-pill badge-status-{{ property.status|lower }}">{{ property.status }}</span>
+                </span>
+
+                <span class="property-price price-value">${{ property.price|money }}</span>
+
+                <span class="user-row">
+                    {{ ico.icon('map-pin', 14) }}
+                    <span class="user-date">{{ property.location_name }}, {{ property.location_city }}</span>
+                </span>
+
+                <span class="user-row">
+                    {{ ico.icon('calendar', 14) }}
+                    <span class="user-date">{{ property.created_at.strftime('%b %d, %Y') if property.created_at else '—' }}</span>
+                </span>
+
+                <span class="user-row property-actions">
+                    <a href="{{ url_for('property_view', id=property.id) }}" class="btn-icon btn-action"
+                       aria-label="View {{ property.title }}">{{ ico.icon('search', 15) }}<span class="btn-action-label">View</span></a>
+                </span>
+
+            </article>
+            {% endfor %}
+        </div>
+        {% else %}
+        <p class="submission-message">{{ ico.icon('database', 18) }} No properties yet.</p>
+        {% endif %}
+    </section>
+
+    <section class="card" aria-label="Recent inquiries">
+        <h2>{{ ico.icon('mail') }} Recent Inquiries</h2>
+
+        {% if recent_inquiries %}
+        <div class="property-grid">
+            {% for inquiry in recent_inquiries %}
+            <article class="card property-card">
+
+                <h2>{{ ico.icon('user', 16) }} <span title="{{ inquiry.name }}">{{ inquiry.name }}</span></h2>
+
+                <span class="user-row row-wrap property-badges">
+                    <span class="badge-pill badge-status-{{ inquiry.status|lower }}">{{ inquiry.status }}</span>
+                    <span class="user-date">{{ inquiry.created_at.strftime('%b %d, %Y') if inquiry.created_at else '—' }}</span>
+                </span>
+
+                <span class="user-row">
+                    {{ ico.icon('home', 14) }}
+                    <span title="{{ inquiry.property_title }}">{{ inquiry.property_title|truncate(34, True, '…') }}</span>
+                </span>
+
+                <span class="user-row property-agent">
+                    {{ ico.icon('user', 14) }}
+                    {% if inquiry.agent_name %}Agent: {{ inquiry.agent_name }}{% else %}No agent assigned{% endif %}
+                </span>
+
+                <span class="user-row property-actions">
+                    <a href="{{ url_for('inquiry_detail', id=inquiry.id) }}" class="btn-icon btn-action"
+                       aria-label="View inquiry from {{ inquiry.name }}">{{ ico.icon('search', 15) }}<span class="btn-action-label">View</span></a>
+                </span>
+
+            </article>
+            {% endfor %}
+        </div>
+        {% else %}
+        <p class="submission-message">{{ ico.icon('database', 18) }} No inquiries yet.</p>
+        {% endif %}
+    </section>
+
+</div>
 
 {% endblock %}

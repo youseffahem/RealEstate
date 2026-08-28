@@ -9,6 +9,7 @@ from flask import Flask, flash, jsonify, redirect, render_template, request, url
 
 import agent_queries
 import agent_validation
+import analytics_queries
 import inquiry_queries
 import inquiry_validation
 import property_queries
@@ -714,20 +715,74 @@ def _render_property_form(template, form_action, submit_label, property_data, im
     )
 
 
+# =====================================================================
+# PHASE 7 - DASHBOARD 2.0 & ANALYTICS
+# =====================================================================
+#
+# The route below stays a thin controller, exactly like every other page
+# in the app: every number, aggregate and JOIN lives in analytics_queries.py
+# (and, where a number is already computed there, in property_queries.py /
+# agent_queries.py / inquiry_queries.py) - this only calls into that layer
+# and renders it. See analytics_queries.py's module docstring for the
+# get_*/build_* split.
+
+_EMPTY_DASHBOARD_OVERVIEW = {
+    "total": 0, "available": 0, "reserved": 0, "sold": 0, "rented": 0,
+    "total_value": 0.0, "average_price": 0.0,
+    "total_agents": 0, "agents_with_properties": 0, "unassigned_properties": 0,
+    "total_inquiries": 0, "new_inquiries": 0, "contacted_inquiries": 0,
+    "closed_inquiries": 0, "inquiries_today": 0, "closure_rate": 0.0,
+}
+
+
+def _empty_dashboard_context():
+    """Fallback data for every dashboard template variable - used only
+    when the database itself is unreachable, the same "still show the
+    page" rule the rest of the app follows (see get_stats(),
+    _property_reference_or_empty())."""
+    return {
+        "overview": _EMPTY_DASHBOARD_OVERVIEW,
+        "status_chart": analytics_queries.build_property_status_chart(_EMPTY_DASHBOARD_OVERVIEW),
+        "inquiry_status_chart": analytics_queries.build_inquiry_status_chart(_EMPTY_DASHBOARD_OVERVIEW),
+        "type_chart": [],
+        "listing_chart": [],
+        "location_chart": [],
+        "agent_performance": [],
+        "recent_properties": [],
+        "recent_inquiries": [],
+    }
+
+
 # ===== Real Estate Dashboard =====
 @app.route("/dashboard")
 def dashboard():
     try:
         connection = get_connection()
-        stats = property_queries.get_property_stats(connection)
+        overview = analytics_queries.get_dashboard_overview(connection)
+        type_stats = analytics_queries.get_property_type_stats(connection)
+        listing_stats = analytics_queries.get_listing_type_stats(connection)
+        location_stats = analytics_queries.get_location_stats(connection)
+        agent_performance = analytics_queries.get_agent_performance(connection)
+        recent_properties = analytics_queries.get_recent_properties(connection)
+        recent_inquiries = analytics_queries.get_recent_inquiries(connection)
         connection.close()
     except mysql.connector.Error as error:
         app.logger.error("Database error while loading the dashboard: %s", error)
         flash("Could not load the dashboard statistics. Please try again later.", "error")
-        stats = {"total": 0, "available": 0, "reserved": 0, "sold": 0, "rented": 0,
-                 "total_value": 0.0, "average_price": 0.0}
+        return render_template("dashboard.html", **_empty_dashboard_context())
 
-    return render_template("dashboard.html", stats=stats)
+    return render_template(
+        "dashboard.html",
+        overview=overview,
+        status_chart=analytics_queries.build_property_status_chart(overview),
+        inquiry_status_chart=analytics_queries.build_inquiry_status_chart(overview),
+        type_chart=analytics_queries.build_property_type_chart(type_stats),
+        listing_chart=analytics_queries.build_listing_type_chart(listing_stats),
+        location_chart=analytics_queries.build_location_chart(location_stats),
+        agent_performance=agent_performance,
+        recent_properties=recent_properties,
+        recent_inquiries=recent_inquiries,
+    )
 
 
 # ===== Property Management - list, search and filter =====
