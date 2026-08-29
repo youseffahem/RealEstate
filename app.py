@@ -1212,4 +1212,4 @@ if __name__ == "__main__":
     # by default, matching "never expose stack traces/internals" from the
     # security audit. `flask run --debug` remains the usual way to develop
     # locally with auto-reload; this only changes the `python app.py` path.
-    app.run(debug=os.environ.get("FLASK_DEBUG") == "1")
+    app.run(host="0.0.0.0", port=5000, debug=os.environ.get("FLASK_DEBUG") == "1")
