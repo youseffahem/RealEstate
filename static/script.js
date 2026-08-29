@@ -318,6 +318,7 @@
 
         var LINK = lowPower ? 96 : 132;
         var REACH = 150;
+        var STOP = 34; // no-go radius - particles hover here, never at the cursor itself
 
         function draw() {
             ctx.clearRect(0, 0, w, h);
@@ -336,15 +337,31 @@
                 if (p.y < -10) { p.y = h + 10; }
                 if (p.y > h + 10) { p.y = -10; }
 
-                // the cursor gently pushes nearby stars away
+                // the cursor gently pulls nearby stars toward it, but
+                // never lets them collapse into the pointer - inside
+                // STOP they hover and are eased back out instead, so
+                // they read as suspended electrons around a magnetic
+                // center rather than particles vanishing into it
                 if (pointer.inside) {
                     dx = p.x - pointer.x;
                     dy = p.y - pointer.y;
                     dist = Math.sqrt(dx * dx + dy * dy);
-                    if (dist < REACH && dist > 0.1) {
-                        var push = (REACH - dist) / REACH * 0.6;
-                        p.x += (dx / dist) * push;
-                        p.y += (dy / dist) * push;
+                    if (dist > STOP && dist < REACH) {
+                        // smoothstep falloff: full pull near REACH,
+                        // easing naturally to zero as STOP is approached
+                        var t = (dist - STOP) / (REACH - STOP);
+                        var ease = t * t * (3 - 2 * t);
+                        var pull = ease * 0.6;
+                        p.x -= (dx / dist) * pull;
+                        p.y -= (dy / dist) * pull;
+                    } else if (dist <= STOP && dist > 0.1) {
+                        // just inside the boundary - ease back out rather
+                        // than snapping, so hovering particles still
+                        // drift a little (their own vx/vy keeps doing
+                        // that) instead of locking to a perfect circle
+                        var out = (STOP - dist) * 0.16;
+                        p.x += (dx / dist) * out;
+                        p.y += (dy / dist) * out;
                     }
                 }
 
