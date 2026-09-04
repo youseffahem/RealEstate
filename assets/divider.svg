@@ -1,0 +1,33 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 8" width="1200" height="8" role="img" aria-label="">
+  <defs>
+    <linearGradient id="base" x1="0" y1="0" x2="1" y2="0">
+      <stop offset="0%"   stop-color="#ff1f45" stop-opacity="0"/>
+      <stop offset="22%"  stop-color="#ff2d52" stop-opacity="0.75"/>
+      <stop offset="50%"  stop-color="#ff2fa0" stop-opacity="0.9"/>
+      <stop offset="78%"  stop-color="#7b5cff" stop-opacity="0.75"/>
+      <stop offset="100%" stop-color="#7b5cff" stop-opacity="0"/>
+    </linearGradient>
+
+    <linearGradient id="comet" x1="0" y1="0" x2="1" y2="0">
+      <stop offset="0%"   stop-color="#ffffff" stop-opacity="0"/>
+      <stop offset="45%"  stop-color="#ffd9e2" stop-opacity="0.85"/>
+      <stop offset="55%"  stop-color="#ffffff" stop-opacity="1"/>
+      <stop offset="100%" stop-color="#ffffff" stop-opacity="0"/>
+    </linearGradient>
+
+    <filter id="g" x="-20%" y="-400%" width="140%" height="900%">
+      <feGaussianBlur stdDeviation="1.6"/>
+    </filter>
+  </defs>
+
+  <style>
+    @keyframes run  { 0% { transform: translateX(-300px) } 100% { transform: translateX(1240px) } }
+    @keyframes glow { 0%,100% { opacity:.55 } 50% { opacity:1 } }
+    .line  { animation: glow 6s ease-in-out infinite; }
+    .comet { animation: run 7s linear infinite; }
+    @media (prefers-reduced-motion: reduce) { .line,.comet { animation: none } }
+  </style>
+
+  <rect class="line" x="0" y="3" width="1200" height="2" rx="1" fill="url(#base)"/>
+  <rect class="comet" x="0" y="2.9" width="280" height="2.2" rx="1.1" fill="url(#comet)" filter="url(#g)"/>
+</svg>
